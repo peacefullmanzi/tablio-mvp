@@ -14,6 +14,10 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "Tablio - Digital Menu",
   description: "Modern digital menu and ordering system",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({

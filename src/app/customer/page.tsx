@@ -45,10 +45,10 @@ export default function CustomerPage() {
 
   return (
     <div className="min-h-screen bg-background text-primary-text">
-      <header className="border-b border-white/5 py-6 sticky top-0 z-10 backdrop-blur-md bg-card/80">
+      <header className="border-b border-white/5 py-4 sticky top-0 z-10 backdrop-blur-md bg-card/80">
         <div className="container mx-auto px-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <UtensilsCrossed className="text-accent" size={28} />
+            <img src="/logo.png" alt="Tablio Logo" className="h-16 w-auto object-contain" />
             <h1 className="text-2xl font-bold tracking-tight">Tablio</h1>
           </div>
           

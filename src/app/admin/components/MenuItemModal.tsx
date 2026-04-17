@@ -1,8 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { db } from '@/lib/firebase';
-import { collection, addDoc, updateDoc, doc } from 'firebase/firestore';
 import { X, Save } from 'lucide-react';
 import { MenuItem } from '@/types/menu';
 
@@ -26,6 +24,7 @@ export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem 
 
     setIsSubmitting(true);
     try {
+      const pin = localStorage.getItem('tablio_admin_auth');
       const itemData = {
         name,
         price: parseFloat(price),
@@ -33,17 +32,22 @@ export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem 
         image: image || null,
       };
 
-      if (editingItem) {
-        await updateDoc(doc(db, 'menus', editingItem.id), itemData);
-      } else {
-        await addDoc(collection(db, 'menus'), itemData);
+      const response = await fetch('/api/admin/menu', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ item: itemData, pin, id: editingItem?.id })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save item');
       }
 
       onSuccess();
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving menu item:", error);
-      alert("Failed to save item.");
+      alert(error.message || "Failed to save item.");
     } finally {
       setIsSubmitting(false);
     }

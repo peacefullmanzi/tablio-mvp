@@ -8,7 +8,6 @@ import OrderList from './components/OrderList';
 import { LayoutDashboard, RefreshCcw, LogOut, Bell, BellOff, History, Inbox, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useRef } from 'react';
-import { writeBatch, doc } from 'firebase/firestore';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -32,28 +31,22 @@ export default function AdminPage() {
     
     setIsSeeding(true);
     try {
-      const { collection, getDocs, addDoc } = await import('firebase/firestore');
-      const menuSnap = await getDocs(collection(db, 'menus'));
-      
-      if (!menuSnap.empty) {
-        alert("Menu is not empty. Seeding cancelled.");
-        return;
-      }
+      const pin = localStorage.getItem('tablio_admin_auth');
+      const response = await fetch('/api/admin/seed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin })
+      });
 
-      const seedData = [
-        { name: "Burger", price: 5000, category: "Food" },
-        { name: "Pizza", price: 8000, category: "Food" },
-        { name: "Soda", price: 1000, category: "Drinks" }
-      ];
-
-      for (const item of seedData) {
-        await addDoc(collection(db, 'menus'), item);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Seeding failed');
       }
       
       alert("Demo menu seeded successfully!");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Seeding failed:", error);
-      alert("Seeding failed.");
+      alert(error.message || "Seeding failed.");
     } finally {
       setIsSeeding(false);
     }
@@ -64,25 +57,25 @@ export default function AdminPage() {
     if (completedOrders.length === 0 || !confirm(`Delete all ${completedOrders.length} completed orders? This cannot be undone.`)) return;
 
     try {
-      const batch = writeBatch(db);
-      completedOrders.forEach((order) => {
-        batch.delete(doc(db, 'orders', order.id));
+      const pin = localStorage.getItem('tablio_admin_auth');
+      const response = await fetch('/api/admin/orders/clear-history', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin })
       });
-      await batch.commit();
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to clear history');
+      }
       alert("History cleared successfully!");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to clear history:", error);
-      alert("Failed to clear history.");
+      alert(error.message || "Failed to clear history.");
     }
   };
 
   useEffect(() => {
-    // Auth Guard
-    if (localStorage.getItem('tablio_admin_auth') !== 'true') {
-      router.push('/admin/login');
-      return;
-    }
-
     // Setup real-time listener for orders
     const q = query(
       collection(db, 'orders'),
@@ -135,7 +128,7 @@ export default function AdminPage() {
         <div className="container mx-auto px-4">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-3">
-              <LayoutDashboard className="text-accent" size={28} />
+              <img src="/logo.png" alt="Tablio Logo" className="h-16 w-auto object-contain" />
               <h1 className="text-2xl font-bold text-primary-text tracking-tight">Dashboard</h1>
             </div>
             

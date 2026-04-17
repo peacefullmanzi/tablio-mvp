@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { collection, query, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
+import { collection, query, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { MenuItem } from '@/types/menu';
 import MenuItemModal from '../components/MenuItemModal';
@@ -18,12 +18,6 @@ export default function MenuManagementPage() {
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
 
   useEffect(() => {
-    // Auth Guard
-    if (localStorage.getItem('tablio_admin_auth') !== 'true') {
-      router.push('/admin/login');
-      return;
-    }
-
     const q = query(collection(db, 'menus'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const fetchedItems = snapshot.docs.map(doc => ({
@@ -40,10 +34,20 @@ export default function MenuManagementPage() {
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this item?")) return;
     try {
-      await deleteDoc(doc(db, 'menus', id));
-    } catch (error) {
+      const pin = localStorage.getItem('tablio_admin_auth');
+      const response = await fetch(`/api/admin/menu/${id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Delete failed');
+      }
+    } catch (error: any) {
       console.error("Error deleting item:", error);
-      alert("Delete failed.");
+      alert(error.message || "Delete failed.");
     }
   };
 
@@ -66,7 +70,7 @@ export default function MenuManagementPage() {
               <ArrowLeft size={20} />
             </Link>
             <div className="flex items-center gap-3">
-              <Utensils className="text-accent" size={28} />
+              <img src="/logo.png" alt="Tablio Logo" className="h-16 w-auto object-contain" />
               <h1 className="text-2xl font-bold text-primary-text tracking-tight">Menu Manager</h1>
             </div>
           </div>

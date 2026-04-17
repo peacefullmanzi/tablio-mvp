@@ -1,8 +1,6 @@
 'use client';
 
 import { Order, OrderStatus } from '@/types/order';
-import { db } from '@/lib/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
 import { Clock, CheckCircle, ChefHat, CheckSquare } from 'lucide-react';
 import { useState } from 'react';
 import { formatPrice } from '@/lib/utils';
@@ -17,13 +15,20 @@ export default function OrderCard({ order }: OrderCardProps) {
   const updateStatus = async (newStatus: OrderStatus) => {
     setIsUpdating(true);
     try {
-      const orderRef = doc(db, 'orders', order.id);
-      await updateDoc(orderRef, {
-        status: newStatus
+      const pin = localStorage.getItem('tablio_admin_auth');
+      const response = await fetch(`/api/admin/orders/${order.id}/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus, pin })
       });
-    } catch (error) {
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update status');
+      }
+    } catch (error: any) {
       console.error("Error updating order status:", error);
-      alert("Failed to update status");
+      alert(error.message || "Failed to update status");
     } finally {
       setIsUpdating(false);
     }

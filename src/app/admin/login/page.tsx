@@ -9,7 +9,7 @@ export default function AdminLoginPage() {
   const [error, setError] = useState(false);
   const router = useRouter();
 
-  const ADMIN_PIN = "1234"; // Simple MVP PIN. In production, move to env or DB.
+  const ADMIN_PIN = process.env.NEXT_PUBLIC_ADMIN_PIN || "1234"; // Fallback to 1234 if not set
 
   useEffect(() => {
     // If already authenticated, skip login
@@ -33,7 +33,7 @@ export default function AdminLoginPage() {
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
     if (pin === ADMIN_PIN) {
-      localStorage.setItem('tablio_admin_auth', 'true');
+      localStorage.setItem('tablio_admin_auth', pin);
       router.push('/admin');
     } else {
       setError(true);

@@ -1,0 +1,33 @@
+import { NextResponse } from 'next/server';
+import { adminDb } from '@/lib/firebase-admin';
+
+export async function POST(request: Request) {
+  try {
+    const { item, pin, id } = await request.json();
+
+    // 1. Validate Admin PIN
+    const ADMIN_PIN = process.env.NEXT_PUBLIC_ADMIN_PIN || "1234";
+    if (pin !== ADMIN_PIN) {
+      return NextResponse.json({ error: 'Unauthorized: Invalid PIN' }, { status: 401 });
+    }
+
+    // 2. Validate Item Data
+    if (!item || !item.name || !item.price || !item.category) {
+      return NextResponse.json({ error: 'Missing required item fields' }, { status: 400 });
+    }
+
+    // 3. Save using Admin SDK
+    if (id) {
+      // Update
+      await adminDb.collection('menus').doc(id).update(item);
+      return NextResponse.json({ success: true, message: 'Item updated successfully' });
+    } else {
+      // Add
+      await adminDb.collection('menus').add(item);
+      return NextResponse.json({ success: true, message: 'Item added successfully' });
+    }
+  } catch (error: any) {
+    console.error('Error saving menu item:', error);
+    return NextResponse.json({ error: 'Internal Server Error', details: error.message }, { status: 500 });
+  }
+}
