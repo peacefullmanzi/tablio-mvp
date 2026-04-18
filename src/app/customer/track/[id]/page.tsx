@@ -8,6 +8,7 @@ import StatusIndicator from '../../components/StatusIndicator';
 import { ShoppingBag, ArrowLeft, Receipt, Clock } from 'lucide-react';
 import Link from 'next/link';
 import { formatPrice } from '@/lib/utils';
+import ChatBox from '../../components/ChatBox';
 
 interface TrackingPageProps {
   params: Promise<{ id: string }>;
@@ -18,6 +19,7 @@ export default function TrackingPage({ params }: TrackingPageProps) {
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   useEffect(() => {
     console.log(`[TrackingPage] Setting up listener for order: ${id}`);
@@ -58,8 +60,8 @@ export default function TrackingPage({ params }: TrackingPageProps) {
         <h1 className="text-2xl font-bold text-primary-text mb-2">Order Not Found</h1>
         <p className="text-secondary-text mb-8 max-w-xs">We couldn&apos;t find an order with this ID. It might have been cleared or the link is incorrect.</p>
         <Link 
-          href="/customer"
-          className="bg-accent hover:bg-emerald-400 text-background font-bold py-3 px-8 rounded-xl transition-all flex items-center gap-2"
+          href="/"
+          className="bg-accent hover:bg-emerald-400 text-background font-black py-3 px-8 rounded-xl transition-all flex items-center gap-2"
         >
           <ArrowLeft size={18} />
           Back to Menu
@@ -73,7 +75,7 @@ export default function TrackingPage({ params }: TrackingPageProps) {
       {/* Header */}
       <header className="border-b border-white/5 py-4 sticky top-0 z-10 backdrop-blur-md bg-card/80">
         <div className="container mx-auto px-4 flex items-center justify-between">
-          <Link href="/customer" className="text-secondary-text hover:text-primary-text transition-colors">
+          <Link href="/" className="text-secondary-text hover:text-primary-text transition-colors">
             <ArrowLeft size={24} />
           </Link>
           <h1 className="text-lg font-bold text-primary-text">Live Tracking</h1>
@@ -144,10 +146,20 @@ export default function TrackingPage({ params }: TrackingPageProps) {
         {/* Action / Help */}
         <div className="mt-8 text-center">
           <p className="text-secondary-text text-sm mb-4">Questions about your order? Ask our staff!</p>
-          <button className="text-accent border border-accent/20 hover:bg-accent/5 px-6 py-2 rounded-lg text-sm transition-colors">
+          <button 
+            onClick={() => setIsChatOpen(true)}
+            className="text-accent border border-accent/20 hover:bg-accent/5 px-6 py-2 rounded-lg text-sm transition-colors"
+          >
             Need Help?
           </button>
         </div>
+
+        <ChatBox 
+          orderId={id} 
+          isOpen={isChatOpen} 
+          onClose={() => setIsChatOpen(false)}
+          orderStatus={order.status}
+        />
       </main>
     </div>
   );

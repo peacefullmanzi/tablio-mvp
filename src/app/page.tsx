@@ -1,50 +1,89 @@
-import Link from "next/link";
-import { UtensilsCrossed, LayoutDashboard, Utensils } from "lucide-react";
+'use client';
+
+import { useEffect, useState } from 'react';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { MenuItem as MenuItemType } from '@/types/menu';
+import MenuList from './customer/components/MenuList';
+import Cart from './customer/components/Cart';
+import { UtensilsCrossed, ExternalLink } from 'lucide-react';
+import Link from 'next/link';
 
 export default function Home() {
-  return (
-    <div className="flex flex-col min-h-screen bg-background items-center justify-center p-4">
-      <div className="max-w-md w-full bg-card rounded-2xl p-8 shadow-2xl border border-white/5 text-center">
-        <div className="mx-auto w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mb-6">
-          <UtensilsCrossed className="text-accent" size={32} />
-        </div>
+  const [menuItems, setMenuItems] = useState<MenuItemType[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeOrderId, setActiveOrderId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Check for active order in local storage
+    const lastId = localStorage.getItem('last_order_id');
+    if (lastId) setActiveOrderId(lastId);
+
+    const fetchMenuItems = async () => {
+      setIsLoading(true);
+      try {
+        const querySnapshot = await getDocs(collection(db, 'menus'));
         
-        <h1 className="text-3xl font-bold text-primary-text mb-2">Tablio</h1>
-        <p className="text-secondary-text mb-8">Modern Digital Menu System</p>
+        if (querySnapshot.empty) {
+          setMenuItems([]);
+        } else {
+          const items = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          })) as MenuItemType[];
+          setMenuItems(items);
+        }
+      } catch (error) {
+        console.error("Critical: Menu fetch failed:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-        <div className="space-y-4">
-          <Link 
-            href="/customer"
-            className="flex items-center justify-between p-4 rounded-xl border border-white/10 hover:border-accent hover:bg-white/5 transition-all group"
-          >
-            <div className="flex items-center gap-4">
-              <div className="bg-white/5 p-3 rounded-lg group-hover:bg-accent/10 transition-colors">
-                <Utensils className="text-primary-text group-hover:text-accent transition-colors" size={24} />
-              </div>
-              <div className="text-left">
-                <h2 className="font-semibold text-primary-text group-hover:text-accent transition-colors">Customer View</h2>
-                <p className="text-sm text-secondary-text">Browse menu and place orders</p>
-              </div>
-            </div>
-          </Link>
+    fetchMenuItems();
+  }, []);
 
-          <Link 
-            href="/admin"
-            className="flex items-center justify-between p-4 rounded-xl border border-white/10 hover:border-accent hover:bg-white/5 transition-all group"
-          >
-            <div className="flex items-center gap-4">
-              <div className="bg-white/5 p-3 rounded-lg group-hover:bg-accent/10 transition-colors">
-                <LayoutDashboard className="text-primary-text group-hover:text-accent transition-colors" size={24} />
-              </div>
-              <div className="text-left">
-                <h2 className="font-semibold text-primary-text group-hover:text-accent transition-colors">Admin Dashboard</h2>
-                <p className="text-sm text-secondary-text">Manage live orders and status</p>
-              </div>
-            </div>
-          </Link>
+  return (
+    <div className="min-h-screen bg-background text-primary-text">
+      <header className="border-b border-white/5 py-4 sticky top-0 z-10 backdrop-blur-md bg-card/80">
+        <div className="container mx-auto px-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img src="/logo.png" alt="Tablio Logo" className="h-16 w-auto object-contain" />
+            <h1 className="text-2xl font-bold tracking-tight">Tablio</h1>
+          </div>
+          
+          {activeOrderId && (
+            <Link 
+              href={`/customer/track/${activeOrderId}`}
+              className="flex items-center gap-2 px-4 py-2 bg-accent/10 border border-accent/20 text-accent rounded-lg text-sm font-bold hover:bg-accent hover:text-background transition-all"
+            >
+              <ExternalLink size={16} />
+              Live Status
+            </Link>
+          )}
         </div>
-      </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-8">
+        {isLoading ? (
+          <div className="flex flex-col justify-center items-center h-64 gap-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
+            <p className="text-secondary-text animate-pulse">Loading menu...</p>
+          </div>
+        ) : menuItems.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-64 text-center">
+            <div className="bg-white/5 p-6 rounded-full mb-4">
+              <UtensilsCrossed size={48} className="text-secondary-text/20" />
+            </div>
+            <h2 className="text-xl font-bold text-primary-text">Menu not available</h2>
+            <p className="text-secondary-text mt-2">Check back later for our latest offerings.</p>
+          </div>
+        ) : (
+          <MenuList items={menuItems} />
+        )}
+      </main>
+
+      <Cart />
     </div>
   );
 }
-

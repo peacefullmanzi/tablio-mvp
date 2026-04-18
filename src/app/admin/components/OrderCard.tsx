@@ -1,9 +1,12 @@
 'use client';
 
 import { Order, OrderStatus } from '@/types/order';
-import { Clock, CheckCircle, ChefHat, CheckSquare } from 'lucide-react';
-import { useState } from 'react';
+import { Clock, CheckCircle, ChefHat, CheckSquare, MessageCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { formatPrice } from '@/lib/utils';
+import { collection, query, onSnapshot } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import AdminChat from './AdminChat';
 
 interface OrderCardProps {
   order: Order;
@@ -64,6 +67,17 @@ export default function OrderCard({ order }: OrderCardProps) {
   };
 
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [messageCount, setMessageCount] = useState(0);
+
+  useEffect(() => {
+    if (!order.id) return;
+    const q = query(collection(db, 'orders', order.id, 'messages'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setMessageCount(snapshot.size);
+    });
+    return () => unsubscribe();
+  }, [order.id]);
 
   return (
     <div className={`bg-card rounded-2xl p-6 shadow-xl border-2 ${isNew() && order.status === 'pending' ? 'border-accent shadow-[0_0_20px_rgba(16,185,129,0.2)] animate-pulse' : 'border-white/5'}`}>
@@ -81,6 +95,21 @@ export default function OrderCard({ order }: OrderCardProps) {
         <div className={`px-4 py-1.5 rounded-full text-xs font-black border uppercase tracking-widest ${getStatusColor(order.status)}`}>
           {order.status}
         </div>
+      </div>
+
+      <div className="flex gap-2 mb-4">
+        <button 
+          onClick={() => setIsChatOpen(true)}
+          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black transition-all border ${
+            messageCount > 0 
+              ? 'bg-blue-500/10 border-blue-500/30 text-blue-400' 
+              : 'bg-white/5 border-white/10 text-secondary-text hover:bg-white/10'
+          }`}
+        >
+          <MessageCircle size={16} />
+          {messageCount > 0 ? `CHAT (${messageCount})` : 'OPEN CHAT'}
+          {messageCount > 0 && <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse ml-1" />}
+        </button>
       </div>
 
       <div className="mb-6 bg-background/50 rounded-xl overflow-hidden border border-white/5">
@@ -160,6 +189,14 @@ export default function OrderCard({ order }: OrderCardProps) {
           </div>
         )}
       </div>
+
+      <AdminChat 
+        orderId={order.id}
+        tableNumber={order.table_number}
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        orderStatus={order.status}
+      />
     </div>
   );
 }
