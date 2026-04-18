@@ -9,7 +9,6 @@ export default function AdminLoginPage() {
   const [error, setError] = useState(false);
   const router = useRouter();
 
-  const ADMIN_PIN = process.env.NEXT_PUBLIC_ADMIN_PIN || "1234"; // Fallback to 1234 if not set
 
   useEffect(() => {
     // If already authenticated, skip login
@@ -30,15 +29,28 @@ export default function AdminLoginPage() {
     setPin(prev => prev.slice(0, -1));
   };
 
-  const handleSubmit = (e?: React.FormEvent) => {
+  const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (pin === ADMIN_PIN) {
-      localStorage.setItem('tablio_admin_auth', pin);
-      router.push('/admin');
-    } else {
+    setError(false);
+    
+    try {
+      const response = await fetch('/api/admin/auth/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin })
+      });
+
+      if (response.ok) {
+        localStorage.setItem('tablio_admin_auth', pin);
+        router.push('/admin');
+      } else {
+        setError(true);
+        setPin('');
+      }
+    } catch (err) {
+      console.error("Login error:", err);
       setError(true);
       setPin('');
-      // Shake animation could be added here
     }
   };
 

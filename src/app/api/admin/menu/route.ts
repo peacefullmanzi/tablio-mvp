@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
+import { validateAdminPin } from '@/lib/admin-utils';
 
 export async function POST(request: Request) {
   try {
     const { item, pin, id } = await request.json();
 
     // 1. Validate Admin PIN
-    const ADMIN_PIN = process.env.NEXT_PUBLIC_ADMIN_PIN || "1234";
-    if (pin !== ADMIN_PIN) {
+    const isValid = await validateAdminPin(pin);
+    if (!isValid) {
       return NextResponse.json({ error: 'Unauthorized: Invalid PIN' }, { status: 401 });
     }
 

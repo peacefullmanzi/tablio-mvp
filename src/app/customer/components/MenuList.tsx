@@ -27,7 +27,7 @@ export default function MenuList({ items }: MenuListProps) {
           <h2 className="text-2xl font-bold text-primary-text mb-6 px-1 border-b border-white/10 pb-2">
             {category}
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {groupedItems[category].map((item) => (
               <MenuItemCard key={item.id} item={item} />
             ))}

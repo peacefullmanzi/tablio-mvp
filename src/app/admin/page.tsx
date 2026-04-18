@@ -5,18 +5,19 @@ import { collection, query, onSnapshot, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Order } from '@/types/order';
 import OrderList from './components/OrderList';
-import { LayoutDashboard, RefreshCcw, LogOut, Bell, BellOff, History, Inbox, Trash2 } from 'lucide-react';
+import { LayoutDashboard, RefreshCcw, LogOut, Bell, BellOff, History, Inbox, Trash2, Settings } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useRef } from 'react';
+import SettingsModal from './components/SettingsModal';
 
 export default function AdminPage() {
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [isSeeding, setIsSeeding] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
   const prevOrderCount = useRef<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -26,31 +27,6 @@ export default function AdminPage() {
     setRefreshKey(prev => prev + 1);
   };
 
-  const handleSeed = async () => {
-    if (orders.length > 0 || !confirm("Seed demo menu items? This only works if the menu is empty.")) return;
-    
-    setIsSeeding(true);
-    try {
-      const pin = localStorage.getItem('tablio_admin_auth');
-      const response = await fetch('/api/admin/seed', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pin })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Seeding failed');
-      }
-      
-      alert("Demo menu seeded successfully!");
-    } catch (error: any) {
-      console.error("Seeding failed:", error);
-      alert(error.message || "Seeding failed.");
-    } finally {
-      setIsSeeding(false);
-    }
-  };
 
   const handleClearHistory = async () => {
     const completedOrders = orders.filter(o => o.status === 'completed');
@@ -133,13 +109,6 @@ export default function AdminPage() {
             </div>
             
             <div className="flex items-center gap-3 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
-              <button
-                onClick={handleSeed}
-                disabled={isSeeding}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-accent rounded-lg text-sm font-medium transition-colors disabled:opacity-50 whitespace-nowrap"
-              >
-                Seed Demo
-              </button>
               <a 
                 href="/admin/menu"
                 className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-accent text-background rounded-lg text-sm font-bold hover:bg-emerald-400 transition-colors whitespace-nowrap"
@@ -152,6 +121,13 @@ export default function AdminPage() {
                 title="Refresh Orders"
               >
                 <RefreshCcw size={20} className={isLoading ? 'animate-spin' : ''} />
+              </button>
+              <button
+                onClick={() => setIsSettingsOpen(true)}
+                className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-secondary-text transition-colors"
+                title="Settings"
+              >
+                <Settings size={20} />
               </button>
               <button
                 onClick={() => {
@@ -245,6 +221,11 @@ export default function AdminPage() {
           <OrderList orders={filteredOrders} />
         )}
       </main>
+
+      <SettingsModal 
+        isOpen={isSettingsOpen} 
+        onClose={() => setIsSettingsOpen(false)} 
+      />
     </div>
   );
 }

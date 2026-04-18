@@ -18,17 +18,37 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
       return;
     }
 
-    const auth = localStorage.getItem('tablio_admin_auth');
-    const adminPin = process.env.NEXT_PUBLIC_ADMIN_PIN;
+    const verifyAccess = async () => {
+      const auth = localStorage.getItem('tablio_admin_auth');
+      
+      if (!auth) {
+        router.push('/admin/login');
+        setAuthorized(false);
+        return;
+      }
 
-    // Strict check: if no PIN is configured in environment, or doesn't match, don't allow access
-    if (!adminPin || auth !== adminPin) {
-      if (auth) localStorage.removeItem('tablio_admin_auth');
-      router.push('/admin/login');
-      setAuthorized(false);
-    } else {
-      setAuthorized(true);
-    }
+      try {
+        const response = await fetch('/api/admin/auth/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pin: auth })
+        });
+
+        if (response.ok) {
+          setAuthorized(true);
+        } else {
+          localStorage.removeItem('tablio_admin_auth');
+          router.push('/admin/login');
+          setAuthorized(false);
+        }
+      } catch (err) {
+        console.error("Auth verification failed:", err);
+        // Fallback: stay unauthorized if verify fails
+        setAuthorized(false);
+      }
+    };
+
+    verifyAccess();
   }, [pathname, router]);
 
   // During SSR or until mounted, show a loader to prevent any flash
