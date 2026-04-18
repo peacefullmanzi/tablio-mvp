@@ -74,10 +74,10 @@ export default function ChatBox({ orderId, isOpen, onClose, orderStatus }: ChatB
   const isCompleted = orderStatus === 'completed';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4">
+    <div className="fixed inset-0 z-100 flex items-end justify-center sm:items-center sm:p-4">
       <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
       
-      <div className="w-full max-w-md bg-card h-[80vh] sm:h-[600px] relative flex flex-col border-t sm:border border-white/10 shadow-2xl rounded-t-3xl sm:rounded-3xl overflow-hidden animate-in slide-in-from-bottom-full duration-300">
+      <div className="w-full max-w-md bg-card h-[80vh] sm:h-[600px] relative flex flex-col border-t sm:border border-white/10 shadow-2xl rounded-t-3xl sm:rounded-3xl overflow-hidden animate-slide-up">
         {/* Header */}
         <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/5">
           <div className="flex items-center gap-3">

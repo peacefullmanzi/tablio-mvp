@@ -2,26 +2,26 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Lock, Delete, ArrowRight } from 'lucide-react';
+import { Lock, Delete, ArrowRight, Loader2 } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const [pin, setPin] = useState('');
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
-
   useEffect(() => {
-    // If already authenticated, skip login
+    // If already authenticated, verify and redirect
     const auth = localStorage.getItem('tablio_admin_auth');
-    if (auth === 'true') {
+    if (auth) {
       router.push('/admin');
     }
   }, [router]);
 
   const handleKeyPress = (num: string) => {
-    if (pin.length < 4) {
+    if (pin.length < 8) {
       setPin(prev => prev + num);
-      setError(false);
+      setError(null);
     }
   };
 
@@ -31,7 +31,13 @@ export default function AdminLoginPage() {
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    setError(false);
+    if (pin.length < 6) {
+      setError('PIN must be at least 6 digits');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
     
     try {
       const response = await fetch('/api/admin/auth/verify', {
@@ -40,25 +46,23 @@ export default function AdminLoginPage() {
         body: JSON.stringify({ pin })
       });
 
+      const data = await response.json();
+
       if (response.ok) {
         localStorage.setItem('tablio_admin_auth', pin);
         router.push('/admin');
       } else {
-        setError(true);
+        setError(data.error || 'Invalid credentials');
         setPin('');
       }
     } catch (err) {
       console.error("Login error:", err);
-      setError(true);
+      setError('Connection failed. Try again.');
       setPin('');
+    } finally {
+      setIsSubmitting(false);
     }
   };
-
-  useEffect(() => {
-    if (pin.length === 4) {
-      handleSubmit();
-    }
-  }, [pin]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
@@ -69,14 +73,14 @@ export default function AdminLoginPage() {
         </div>
 
         <h1 className="text-2xl font-bold text-primary-text mb-2">Staff Access</h1>
-        <p className="text-secondary-text mb-8 text-center">Enter your 4-digit security PIN to continue</p>
+        <p className="text-secondary-text mb-8 text-center">Enter your security PIN to continue</p>
 
-        {/* PIN Display */}
-        <div className="flex gap-4 mb-10">
-          {[0, 1, 2, 3].map((i) => (
+        {/* PIN Display (Dynamic Dots) */}
+        <div className="flex gap-3 mb-10 h-6">
+          {Array.from({ length: Math.max(6, pin.length) }).map((_, i) => (
             <div 
               key={i}
-              className={`w-4 h-4 rounded-full border-2 transition-all duration-200 ${
+              className={`w-3 h-3 rounded-full border-2 transition-all duration-200 ${
                 pin.length > i 
                   ? 'bg-accent border-accent scale-110 shadow-[0_0_15px_rgba(16,185,129,0.5)]' 
                   : 'border-white/20'
@@ -109,21 +113,22 @@ export default function AdminLoginPage() {
             0
           </button>
           <button 
-            onClick={() => pin.length === 4 && handleSubmit()}
-            className="h-16 rounded-xl bg-accent flex items-center justify-center text-background hover:bg-emerald-400 active:scale-95 transition-all outline-none"
+            onClick={() => !isSubmitting && handleSubmit()}
+            disabled={isSubmitting || pin.length < 6}
+            className="h-16 rounded-xl bg-accent flex items-center justify-center text-background hover:bg-emerald-400 active:scale-95 transition-all outline-none disabled:opacity-50"
           >
-            <ArrowRight size={24} />
+            {isSubmitting ? <Loader2 className="animate-spin" size={24} /> : <ArrowRight size={24} />}
           </button>
         </div>
 
         {error && (
-          <p className="mt-6 text-red-500 font-medium animate-in fade-in slide-in-from-top-2">
-            Incorrect PIN. Please try again.
+          <p className="mt-6 text-red-500 font-medium text-center animate-in fade-in slide-in-from-top-2 max-w-[80%]">
+            {error}
           </p>
         )}
 
         <div className="mt-12 text-secondary-text text-[10px] uppercase tracking-widest opacity-50">
-          Tablio Security Layer v1.0
+          Tablio Security Layer v2.0
         </div>
       </div>
     </div>

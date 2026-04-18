@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
-import { validateAdminPin } from '@/lib/admin-utils';
+import { validateAdminPin, isStrongPin, hashPin } from '@/lib/admin-utils';
 
 export async function POST(request: Request) {
   try {
@@ -10,20 +10,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Current PIN and new PIN are required' }, { status: 400 });
     }
 
-    if (newPin.length !== 4 || !/^\d+$/.test(newPin)) {
-      return NextResponse.json({ error: 'New PIN must be a 4-digit number' }, { status: 400 });
+    // 1. Enforce Strong PIN Policy
+    const strength = isStrongPin(newPin);
+    if (!strength.valid) {
+      return NextResponse.json({ error: strength.error }, { status: 400 });
     }
 
-    // 1. Verify Current PIN
+    // 2. Verify Current PIN
     const isCurrentValid = await validateAdminPin(currentPin);
 
     if (!isCurrentValid) {
       return NextResponse.json({ error: 'Unauthorized: Invalid current PIN' }, { status: 401 });
     }
 
-    // 2. Update PIN in Firestore
+    // 3. Hash New PIN for Secure Storage
+    const hashedPin = hashPin(newPin);
+
+    // 4. Update PIN in Firestore
     await adminDb.collection('settings').doc('config').set({
-      adminPin: newPin,
+      adminPin: hashedPin,
       updated_at: new Date()
     }, { merge: true });
 

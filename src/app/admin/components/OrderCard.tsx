@@ -97,20 +97,18 @@ export default function OrderCard({ order }: OrderCardProps) {
         </div>
       </div>
 
-      <div className="flex gap-2 mb-4">
-        <button 
-          onClick={() => setIsChatOpen(true)}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black transition-all border ${
-            messageCount > 0 
-              ? 'bg-blue-500/10 border-blue-500/30 text-blue-400' 
-              : 'bg-white/5 border-white/10 text-secondary-text hover:bg-white/10'
-          }`}
-        >
-          <MessageCircle size={16} />
-          {messageCount > 0 ? `CHAT (${messageCount})` : 'OPEN CHAT'}
-          {messageCount > 0 && <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse ml-1" />}
-        </button>
-      </div>
+      {messageCount > 0 && (
+        <div className="flex gap-2 mb-4">
+          <button 
+            onClick={() => setIsChatOpen(true)}
+            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black transition-all border bg-blue-500/10 border-blue-500/30 text-blue-400"
+          >
+            <MessageCircle size={16} />
+            CHAT ({messageCount})
+            <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse ml-1" />
+          </button>
+        </div>
+      )}
 
       <div className="mb-6 bg-background/50 rounded-xl overflow-hidden border border-white/5">
         <button 

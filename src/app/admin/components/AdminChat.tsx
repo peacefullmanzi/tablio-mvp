@@ -73,10 +73,10 @@ export default function AdminChat({ orderId, tableNumber, isOpen, onClose, order
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={onClose} />
       
-      <div className="w-full max-w-md bg-card h-[600px] relative flex flex-col border border-white/10 shadow-2xl rounded-3xl overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="w-full max-w-md bg-card h-[600px] relative flex flex-col border border-white/10 shadow-2xl rounded-3xl overflow-hidden animate-slide-up">
         {/* Header */}
         <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/5">
           <div className="flex items-center gap-3">

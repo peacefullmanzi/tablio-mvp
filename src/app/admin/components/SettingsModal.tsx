@@ -23,8 +23,8 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     setError(null);
     setSuccess(false);
 
-    if (newPin.length !== 4 || !/^\d+$/.test(newPin)) {
-      setError('New PIN must be 4 digits');
+    if (newPin.length < 6 || !/^\d+$/.test(newPin)) {
+      setError('New PIN must be at least 6 digits and numeric');
       return;
     }
 
@@ -97,7 +97,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   <label className="block text-sm font-medium text-secondary-text mb-1.5">Current PIN</label>
                   <input
                     type="password"
-                    maxLength={4}
+                    maxLength={10}
                     value={currentPin}
                     onChange={(e) => setCurrentPin(e.target.value)}
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-lg font-mono tracking-[1em] focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all"
@@ -111,11 +111,11 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     <label className="block text-sm font-medium text-secondary-text mb-1.5">New PIN</label>
                     <input
                       type="password"
-                      maxLength={4}
+                      maxLength={10}
                       value={newPin}
                       onChange={(e) => setNewPin(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-lg font-mono tracking-[1em] focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all"
-                      placeholder="****"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-lg font-mono tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all"
+                      placeholder="******"
                       required
                     />
                   </div>
@@ -123,11 +123,11 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     <label className="block text-sm font-medium text-secondary-text mb-1.5">Confirm New PIN</label>
                     <input
                       type="password"
-                      maxLength={4}
+                      maxLength={10}
                       value={confirmPin}
                       onChange={(e) => setConfirmPin(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-lg font-mono tracking-[1em] focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all"
-                      placeholder="****"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-lg font-mono tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all"
+                      placeholder="******"
                       required
                     />
                   </div>
