@@ -5,9 +5,10 @@ import OrderCard from './OrderCard';
 
 interface OrderListProps {
   orders: Order[];
+  onMessageCountChange?: (orderId: string, count: number) => void;
 }
 
-export default function OrderList({ orders }: OrderListProps) {
+export default function OrderList({ orders, onMessageCountChange }: OrderListProps) {
   if (orders.length === 0) {
     return (
       <div className="text-center py-16 bg-card rounded-xl border border-white/5">
@@ -36,7 +37,7 @@ export default function OrderList({ orders }: OrderListProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {sortedOrders.map((order) => (
-        <OrderCard key={order.id} order={order} />
+        <OrderCard key={order.id} order={order} onMessageCountChange={onMessageCountChange} />
       ))}
     </div>
   );

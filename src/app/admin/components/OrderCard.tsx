@@ -10,9 +10,10 @@ import AdminChat from './AdminChat';
 
 interface OrderCardProps {
   order: Order;
+  onMessageCountChange?: (orderId: string, count: number) => void;
 }
 
-export default function OrderCard({ order }: OrderCardProps) {
+export default function OrderCard({ order, onMessageCountChange }: OrderCardProps) {
   const [isUpdating, setIsUpdating] = useState(false);
 
   const updateStatus = async (newStatus: OrderStatus) => {
@@ -29,9 +30,10 @@ export default function OrderCard({ order }: OrderCardProps) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to update status');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error updating order status:", error);
-      alert(error.message || "Failed to update status");
+      const errorMessage = error instanceof Error ? error.message : "Failed to update status";
+      alert(errorMessage);
     } finally {
       setIsUpdating(false);
     }
@@ -57,13 +59,34 @@ export default function OrderCard({ order }: OrderCardProps) {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  const isNew = () => {
-    if (!order.created_at) return false;
-    const date = (order.created_at as { toDate?: () => Date }).toDate 
-      ? (order.created_at as { toDate: () => Date }).toDate() 
-      : new Date(order.created_at as string | number | Date);
-    const diff = (new Date().getTime() - date.getTime()) / 1000;
-    return diff < 120; // 2 minutes
+  const [elapsedMinutes, setElapsedMinutes] = useState(0);
+
+  useEffect(() => {
+    if (order.status === 'completed' || !order.created_at) return;
+
+    const calculateElapsed = () => {
+      const date = (order.created_at as { toDate?: () => Date }).toDate 
+        ? (order.created_at as { toDate: () => Date }).toDate() 
+        : new Date(order.created_at as string | number | Date);
+      const diff = Math.floor((new Date().getTime() - date.getTime()) / 60000);
+      setElapsedMinutes(diff);
+    };
+
+    calculateElapsed();
+    const interval = setInterval(calculateElapsed, 30000); // Check every 30s
+    return () => clearInterval(interval);
+  }, [order.created_at, order.status]);
+
+  const getUrgencyClasses = () => {
+    if (order.status === 'completed' || order.status === 'ready') return 'border-white/5';
+    
+    if (elapsedMinutes >= 15) {
+      return 'border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.3)] animate-pulse';
+    } else if (elapsedMinutes >= 5) {
+      return 'border-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.2)]';
+    } else {
+      return 'border-accent shadow-[0_0_15px_rgba(16,185,129,0.1)]';
+    }
   };
 
   const [isExpanded, setIsExpanded] = useState(false);
@@ -74,13 +97,17 @@ export default function OrderCard({ order }: OrderCardProps) {
     if (!order.id) return;
     const q = query(collection(db, 'orders', order.id, 'messages'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
+      const hasCustomerMessage = snapshot.docs.some(doc => doc.data().sender === 'customer');
       setMessageCount(snapshot.size);
+      if (onMessageCountChange) {
+        onMessageCountChange(order.id, hasCustomerMessage ? 1 : 0);
+      }
     });
     return () => unsubscribe();
-  }, [order.id]);
+  }, [order.id, onMessageCountChange]);
 
   return (
-    <div className={`bg-card rounded-2xl p-6 shadow-xl border-2 ${isNew() && order.status === 'pending' ? 'border-accent shadow-[0_0_20px_rgba(16,185,129,0.2)] animate-pulse' : 'border-white/5'}`}>
+    <div className={`bg-card/80 backdrop-blur-md rounded-2xl p-6 shadow-xl border-2 transition-all duration-500 ${getUrgencyClasses()} ${isUpdating ? 'opacity-50 scale-95 animate-pulse' : 'animate-in fade-in zoom-in-95'}`}>
       <div className="flex justify-between items-start mb-6">
         <div>
           <div className="text-secondary-text text-[10px] font-black uppercase tracking-[0.2em] mb-1">Table</div>
@@ -95,6 +122,18 @@ export default function OrderCard({ order }: OrderCardProps) {
         <div className={`px-4 py-1.5 rounded-full text-xs font-black border uppercase tracking-widest ${getStatusColor(order.status)}`}>
           {order.status}
         </div>
+      </div>
+
+      <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden mb-6">
+        <div 
+          className={`h-full transition-all duration-1000 ease-out ${
+            order.status === 'pending' ? 'w-1/5 bg-yellow-500' :
+            order.status === 'accepted' ? 'w-2/5 bg-blue-500' :
+            order.status === 'preparing' ? 'w-3/5 bg-orange-500' :
+            order.status === 'ready' ? 'w-4/5 bg-accent' :
+            'w-full bg-secondary-text'
+          }`}
+        />
       </div>
 
       {messageCount > 0 && (

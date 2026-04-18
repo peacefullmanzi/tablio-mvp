@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Lock, Delete, ArrowRight, Loader2 } from 'lucide-react';
+import { Lock, ArrowRight, Loader2 } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const [pin, setPin] = useState('');
@@ -18,16 +18,13 @@ export default function AdminLoginPage() {
     }
   }, [router]);
 
-  const handleKeyPress = (num: string) => {
-    if (pin.length < 8) {
-      setPin(prev => prev + num);
-      setError(null);
-    }
-  };
 
-  const handleDelete = () => {
-    setPin(prev => prev.slice(0, -1));
-  };
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    // Focus input on mount
+    inputRef.current?.focus();
+  }, []);
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -54,81 +51,100 @@ export default function AdminLoginPage() {
       } else {
         setError(data.error || 'Invalid credentials');
         setPin('');
+        inputRef.current?.focus();
       }
     } catch (err) {
       console.error("Login error:", err);
       setError('Connection failed. Try again.');
       setPin('');
+      inputRef.current?.focus();
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+    <div 
+      className="min-h-screen bg-background flex flex-col items-center justify-center p-4 cursor-text"
+      onClick={() => inputRef.current?.focus()}
+    >
       <div className="w-full max-w-sm flex flex-col items-center">
         {/* Logo/Icon */}
-        <div className="w-16 h-16 bg-accent/10 rounded-2xl flex items-center justify-center mb-6 border border-accent/20">
-          <Lock className="text-accent" size={32} />
+        <div className="w-20 h-20 bg-accent/10 rounded-4xl flex items-center justify-center mb-8 border border-accent/20 shadow-2xl shadow-accent/5">
+          <Lock className="text-accent" size={36} />
         </div>
 
-        <h1 className="text-2xl font-bold text-primary-text mb-2">Staff Access</h1>
-        <p className="text-secondary-text mb-8 text-center">Enter your security PIN to continue</p>
+        <h1 className="text-3xl font-black text-primary-text mb-3 tracking-tight">Staff Access</h1>
+        <p className="text-secondary-text mb-12 text-center text-sm font-medium">Type your security PIN to continue</p>
 
-        {/* PIN Display (Dynamic Dots) */}
-        <div className="flex gap-3 mb-10 h-6">
-          {Array.from({ length: Math.max(6, pin.length) }).map((_, i) => (
-            <div 
-              key={i}
-              className={`w-3 h-3 rounded-full border-2 transition-all duration-200 ${
-                pin.length > i 
-                  ? 'bg-accent border-accent scale-110 shadow-[0_0_15px_rgba(16,185,129,0.5)]' 
-                  : 'border-white/20'
-              } ${error ? 'border-red-500 animate-bounce' : ''}`}
-            />
-          ))}
-        </div>
+        {/* Hidden Input for Keyboard Access */}
+        <form onSubmit={handleSubmit} className="relative w-full flex flex-col items-center">
+          <input
+            ref={inputRef}
+            type="tel"
+            pattern="[0-9]*"
+            inputMode="numeric"
+            value={pin}
+            onChange={(e) => {
+              const val = e.target.value.replace(/[^0-9]/g, '');
+              if (val.length <= 8) {
+                setPin(val);
+                setError(null);
+              }
+            }}
+            className="absolute opacity-0 inset-0 cursor-default"
+            autoFocus
+            disabled={isSubmitting}
+          />
 
-        {/* Keypad */}
-        <div className="grid grid-cols-3 gap-4 w-full px-4">
-          {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((num) => (
-            <button
-              key={num}
-              onClick={() => handleKeyPress(num)}
-              className="h-16 rounded-xl bg-card border border-white/5 text-2xl font-bold text-primary-text hover:bg-white/5 active:scale-95 transition-all outline-none"
-            >
-              {num}
-            </button>
-          ))}
+          {/* PIN Display (Dynamic Dots) */}
+          <div className="flex gap-4 mb-12 h-12 items-center justify-center">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div 
+                key={i}
+                className={`w-4 h-4 rounded-full border-2 transition-all duration-300 ${
+                  pin.length > i 
+                    ? 'bg-accent border-accent scale-125 shadow-[0_0_20px_rgba(16,185,129,0.4)]' 
+                    : 'border-white/10 bg-white/5'
+                } ${error ? 'border-red-500 animate-shake' : ''}`}
+              />
+            ))}
+            {pin.length > 6 && Array.from({ length: pin.length - 6 }).map((_, i) => (
+              <div 
+                key={i + 6}
+                className="w-4 h-4 rounded-full border-2 bg-accent border-accent scale-125 shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all duration-300"
+              />
+            ))}
+          </div>
+
           <button 
-            onClick={handleDelete}
-            className="h-16 rounded-xl bg-card/50 flex items-center justify-center text-secondary-text hover:text-red-500 hover:bg-red-500/10 transition-colors outline-none"
-          >
-            <Delete size={24} />
-          </button>
-          <button
-            onClick={() => handleKeyPress('0')}
-            className="h-16 rounded-xl bg-card border border-white/5 text-2xl font-bold text-primary-text hover:bg-white/5 active:scale-95 transition-all outline-none"
-          >
-            0
-          </button>
-          <button 
-            onClick={() => !isSubmitting && handleSubmit()}
+            type="submit"
             disabled={isSubmitting || pin.length < 6}
-            className="h-16 rounded-xl bg-accent flex items-center justify-center text-background hover:bg-emerald-400 active:scale-95 transition-all outline-none disabled:opacity-50"
+            className="w-full h-16 rounded-2xl bg-accent text-background flex items-center justify-center gap-3 font-black text-lg hover:bg-emerald-400 active:scale-[0.98] transition-all shadow-xl shadow-accent/20 disabled:opacity-30 disabled:grayscale"
           >
-            {isSubmitting ? <Loader2 className="animate-spin" size={24} /> : <ArrowRight size={24} />}
+            {isSubmitting ? (
+              <Loader2 className="animate-spin" size={24} />
+            ) : (
+              <>
+                CONTINUE <ArrowRight size={24} />
+              </>
+            )}
           </button>
-        </div>
+        </form>
 
         {error && (
-          <p className="mt-6 text-red-500 font-medium text-center animate-in fade-in slide-in-from-top-2 max-w-[80%]">
+          <p className="mt-8 text-red-500 font-bold text-center animate-in fade-in slide-in-from-top-4 bg-red-500/10 px-6 py-2 rounded-full border border-red-500/20">
             {error}
           </p>
         )}
 
-        <div className="mt-12 text-secondary-text text-[10px] uppercase tracking-widest opacity-50">
-          Tablio Security Layer v2.0
+        <div className="mt-20 flex flex-col items-center gap-2">
+          <div className="px-3 py-1 bg-white/5 rounded-full border border-white/5 text-[10px] text-secondary-text font-black uppercase tracking-[0.2em]">
+            Secure Endpoint
+          </div>
+          <p className="text-secondary-text text-[10px] font-medium opacity-40">
+            Tablio Security Layer v2.0 • Admin Dashboard
+          </p>
         </div>
       </div>
     </div>

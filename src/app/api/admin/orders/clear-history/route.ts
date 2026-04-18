@@ -32,8 +32,9 @@ export async function POST(request: Request) {
       success: true, 
       message: `Cleared ${snapshot.size} completed orders` 
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error clearing history:', error);
-    return NextResponse.json({ error: 'Internal Server Error', details: error.message }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: 'Internal Server Error', details: errorMessage }, { status: 500 });
   }
 }

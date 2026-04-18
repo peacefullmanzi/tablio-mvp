@@ -1,7 +1,6 @@
 import * as admin from 'firebase-admin';
 
-let db: admin.firestore.Firestore;
-let auth: admin.auth.Auth;
+
 
 if (!admin.apps.length) {
     try {

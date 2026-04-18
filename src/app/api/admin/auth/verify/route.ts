@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     // 2. Admin Account Lockout (Database-backed per restaurantId)
     const lockoutDoc = await adminDb.collection('settings').doc(`lockout_${restaurantId}`).get();
     if (lockoutDoc.exists) {
-      const { failedAttempts, lockedUntil } = lockoutDoc.data() || {};
+      const { lockedUntil } = lockoutDoc.data() || {};
       if (lockedUntil && now < lockedUntil.toDate().getTime()) {
         return NextResponse.json({ error: 'Account locked due to multiple failed attempts. Try again in 5 minutes.' }, { status: 403 });
       }
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
       const currentLockout = lockoutDoc.data() || { failedAttempts: 0 };
       const newFailedAttempts = currentLockout.failedAttempts + 1;
       
-      const lockoutData: any = {
+      const lockoutData: Record<string, unknown> = {
         failedAttempts: newFailedAttempts,
         lastAttempt: new Date()
       };
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[VerifyAuth] Error:', error);
     return NextResponse.json({ error: 'Invalid credentials' }, { status: 500 });
   }

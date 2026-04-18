@@ -56,7 +56,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       } else {
         setError(data.error || 'Failed to update PIN');
       }
-    } catch (err) {
+    } catch {
       setError('An error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);

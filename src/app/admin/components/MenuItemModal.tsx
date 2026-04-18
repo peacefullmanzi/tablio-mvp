@@ -45,9 +45,10 @@ export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem 
 
       onSuccess();
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error saving menu item:", error);
-      alert(error.message || "Failed to save item.");
+      const errorMessage = error instanceof Error ? error.message : "Failed to save item.";
+      alert(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

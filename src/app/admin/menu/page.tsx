@@ -5,13 +5,11 @@ import { collection, query, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { MenuItem } from '@/types/menu';
 import MenuItemModal from '../components/MenuItemModal';
-import { Utensils, Plus, Edit2, Trash2, ArrowLeft, LogOut } from 'lucide-react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { Utensils, Plus, Edit2, Trash2 } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
+import Image from 'next/image';
 
 export default function MenuManagementPage() {
-  const router = useRouter();
   const [items, setItems] = useState<MenuItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -45,9 +43,10 @@ export default function MenuManagementPage() {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Delete failed');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error deleting item:", error);
-      alert(error.message || "Delete failed.");
+      const errorMessage = error instanceof Error ? error.message : "Delete failed.";
+      alert(errorMessage);
     }
   };
 
@@ -63,35 +62,20 @@ export default function MenuManagementPage() {
 
   return (
     <div className="min-h-screen bg-background pb-12">
-      <header className="bg-card border-b border-white/5 py-6 mb-8 sticky top-0 z-10">
-        <div className="container mx-auto px-4 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <Link href="/admin" className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-secondary-text transition-colors">
-              <ArrowLeft size={20} />
-            </Link>
-            <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="Tablio Logo" className="h-16 w-auto object-contain" />
-              <h1 className="text-2xl font-bold text-primary-text tracking-tight">Menu Manager</h1>
-            </div>
+      <header className="bg-background/80 backdrop-blur-xl border-b border-white/10 py-6 mb-8 sticky top-0 z-10">
+        <div className="container mx-auto px-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-black text-primary-text tracking-tight">Menu Manager</h1>
+            <p className="text-secondary-text text-sm mt-1">Manage your restaurant offerings</p>
           </div>
           
           <div className="flex items-center gap-4">
             <button
-              onClick={() => {
-                localStorage.removeItem('tablio_admin_auth');
-                router.push('/admin/login');
-              }}
-              className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-secondary-text transition-colors"
-              title="Logout"
-            >
-              <LogOut size={20} />
-            </button>
-            <button
               onClick={openAdd}
-              className="flex items-center gap-2 px-4 py-2 bg-accent text-background rounded-lg text-sm font-bold hover:bg-emerald-400 transition-colors"
+              className="flex items-center gap-2 px-6 py-3 bg-accent text-background rounded-xl text-sm font-bold hover:bg-emerald-400 transition-all shadow-lg shadow-accent/20 active:scale-95"
             >
               <Plus size={18} />
-              Add Item
+              Add New Item
             </button>
           </div>
         </div>
@@ -113,11 +97,12 @@ export default function MenuManagementPage() {
             {items.map((item) => (
               <div key={item.id} className="bg-card border border-white/5 rounded-xl overflow-hidden group hover:border-accent/30 transition-colors">
                 {item.image && (
-                  <div className="h-40 overflow-hidden bg-white/5">
-                    <img 
+                  <div className="h-40 overflow-hidden bg-white/5 relative">
+                    <Image 
                       src={item.image} 
                       alt={item.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-500" 
                     />
                   </div>
                 )}

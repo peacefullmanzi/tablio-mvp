@@ -1,23 +1,28 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { collection, query, onSnapshot, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Order } from '@/types/order';
 import OrderList from './components/OrderList';
-import { LayoutDashboard, RefreshCcw, LogOut, Bell, BellOff, History, Inbox, Trash2, Settings } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useRef } from 'react';
-import SettingsModal from './components/SettingsModal';
+import { RefreshCcw, Bell, BellOff, History, Inbox, Trash2, MessageSquare } from 'lucide-react';
 
 export default function AdminPage() {
-  const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const [showCompleted, setShowCompleted] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [messageCounts, setMessageCounts] = useState<Record<string, number>>({});
+  
+  const handleMessageCountChange = useCallback((orderId: string, count: number) => {
+    setMessageCounts(prev => {
+      if (prev[orderId] === count) return prev;
+      return { ...prev, [orderId]: count };
+    });
+  }, []);
+
+  const activeChatRooms = Object.values(messageCounts).reduce((a, b) => a + b, 0);
   
   const prevOrderCount = useRef<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -45,9 +50,10 @@ export default function AdminPage() {
         throw new Error(errorData.error || 'Failed to clear history');
       }
       alert("History cleared successfully!");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to clear history:", error);
-      alert(error.message || "Failed to clear history.");
+      const errorMessage = error instanceof Error ? error.message : "Failed to clear history.";
+      alert(errorMessage);
     }
   };
 
@@ -100,49 +106,28 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-background pb-12">
-      <header className={`bg-card border-b border-white/5 py-6 sticky top-0 z-10`}>
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="Tablio Logo" className="h-16 w-auto object-contain" />
-              <h1 className="text-2xl font-bold text-primary-text tracking-tight">Dashboard</h1>
-            </div>
-            
-            <div className="flex items-center gap-3 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
-              <a 
-                href="/admin/menu"
-                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-accent text-background rounded-lg text-sm font-bold hover:bg-emerald-400 transition-colors whitespace-nowrap"
-              >
-                Manage Menu
-              </a>
+      <header className={`bg-background/80 backdrop-blur-xl border-b border-white/10 py-6 sticky top-0 z-10`}>
+        <div className="container mx-auto px-8">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl font-black text-primary-text tracking-tight">Active Orders</h1>
+            <div className="flex gap-4 items-center">
+              {activeChatRooms > 0 && (
+                <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 font-bold text-sm cursor-default animate-pulse shadow-[0_0_15px_rgba(59,130,246,0.2)]">
+                  <MessageSquare size={16} />
+                  {activeChatRooms} Active {activeChatRooms === 1 ? 'Chat' : 'Chats'}
+                </div>
+              )}
               <button 
                 onClick={handleRefresh}
-                className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-secondary-text transition-colors cursor-pointer"
-                title="Refresh Orders"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-secondary-text transition-colors font-bold text-sm"
               >
-                <RefreshCcw size={20} className={isLoading ? 'animate-spin' : ''} />
-              </button>
-              <button
-                onClick={() => setIsSettingsOpen(true)}
-                className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-secondary-text transition-colors"
-                title="Settings"
-              >
-                <Settings size={20} />
-              </button>
-              <button
-                onClick={() => {
-                  localStorage.removeItem('tablio_admin_auth');
-                  router.push('/admin/login');
-                }}
-                className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-secondary-text transition-colors"
-                title="Logout"
-              >
-                <LogOut size={20} />
+                <RefreshCcw size={16} className={isLoading ? 'animate-spin' : ''} />
+                Refresh
               </button>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-4 border-t border-white/5">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex gap-2">
               <button
                 onClick={() => setShowCompleted(false)}
@@ -218,14 +203,9 @@ export default function AdminPage() {
             <p className="text-lg">{showCompleted ? 'No history found' : 'No active orders'}</p>
           </div>
         ) : (
-          <OrderList orders={filteredOrders} />
+          <OrderList orders={filteredOrders} onMessageCountChange={handleMessageCountChange} />
         )}
       </main>
-
-      <SettingsModal 
-        isOpen={isSettingsOpen} 
-        onClose={() => setIsSettingsOpen(false)} 
-      />
     </div>
   );
 }

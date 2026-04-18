@@ -16,7 +16,7 @@ interface Message {
   id: string;
   text: string;
   sender: 'customer' | 'admin';
-  timestamp: any;
+  timestamp: unknown;
 }
 
 export default function ChatBox({ orderId, isOpen, onClose, orderStatus }: ChatBoxProps) {

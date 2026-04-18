@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import AdminSidebar from './AdminSidebar';
 
 export default function AdminGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -10,11 +11,11 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
   const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
-    setHasMounted(true);
+    setTimeout(() => setHasMounted(true), 0);
     
     // If we are on the login page, don't guard
     if (pathname === '/admin/login') {
-      setAuthorized(true);
+      setTimeout(() => setAuthorized(true), 0);
       return;
     }
 
@@ -63,5 +64,16 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
     );
   }
 
-  return <>{children}</>;
+  if (pathname === '/admin/login') {
+    return <>{children}</>;
+  }
+
+  return (
+    <div className="flex min-h-screen bg-background">
+      <AdminSidebar />
+      <div className="flex-1 ml-64 flex flex-col min-h-screen">
+        {children}
+      </div>
+    </div>
+  );
 }

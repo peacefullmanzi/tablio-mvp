@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { X, Send, MessageCircle } from 'lucide-react';
+import { createPortal } from 'react-dom';
 
 interface AdminChatProps {
   orderId: string;
@@ -17,7 +18,7 @@ interface Message {
   id: string;
   text: string;
   sender: 'customer' | 'admin';
-  timestamp: any;
+  timestamp: unknown;
 }
 
 export default function AdminChat({ orderId, tableNumber, isOpen, onClose, orderStatus }: AdminChatProps) {
@@ -72,11 +73,11 @@ export default function AdminChat({ orderId, tableNumber, isOpen, onClose, order
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
+  const chatUI = (
+    <div className="fixed inset-0 z-9999 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={onClose} />
       
-      <div className="w-full max-w-md bg-card h-[600px] relative flex flex-col border border-white/10 shadow-2xl rounded-3xl overflow-hidden animate-slide-up">
+      <div className="w-full max-w-md bg-card h-[80vh] max-h-[600px] relative flex flex-col border border-white/10 shadow-2xl rounded-3xl overflow-hidden animate-slide-up">
         {/* Header */}
         <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/5">
           <div className="flex items-center gap-3">
@@ -129,6 +130,7 @@ export default function AdminChat({ orderId, tableNumber, isOpen, onClose, order
           ) : (
             <form onSubmit={handleSendMessage} className="flex gap-2">
               <input 
+                autoFocus
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
@@ -148,4 +150,9 @@ export default function AdminChat({ orderId, tableNumber, isOpen, onClose, order
       </div>
     </div>
   );
+
+  if (typeof document !== 'undefined') {
+    return createPortal(chatUI, document.body);
+  }
+  return null;
 }

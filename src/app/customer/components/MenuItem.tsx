@@ -4,6 +4,7 @@ import { MenuItem as MenuItemType } from '@/types/menu';
 import { useStore } from '@/lib/store';
 import { Plus } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
+import Image from 'next/image';
 
 interface MenuItemProps {
   item: MenuItemType;
@@ -16,8 +17,8 @@ export default function MenuItem({ item }: MenuItemProps) {
     <div className="bg-card rounded-2xl p-4 flex flex-col justify-between border border-white/5 active:bg-white/5 transition-colors">
       <div className="flex gap-4">
         {item.image && (
-          <div className="w-20 h-20 bg-white/5 rounded-xl overflow-hidden shrink-0">
-            <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+          <div className="w-20 h-20 bg-white/5 rounded-xl overflow-hidden shrink-0 relative">
+            <Image src={item.image} alt={item.name} fill className="object-cover" />
           </div>
         )}
         <div className="flex-1 py-1">

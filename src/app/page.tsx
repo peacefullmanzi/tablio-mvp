@@ -8,6 +8,7 @@ import MenuList from './customer/components/MenuList';
 import Cart from './customer/components/Cart';
 import { UtensilsCrossed, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Home() {
   const [menuItems, setMenuItems] = useState<MenuItemType[]>([]);
@@ -17,7 +18,9 @@ export default function Home() {
   useEffect(() => {
     // Check for active order in local storage
     const lastId = localStorage.getItem('last_order_id');
-    if (lastId) setActiveOrderId(lastId);
+    if (lastId) {
+      setTimeout(() => setActiveOrderId(lastId), 0);
+    }
 
     const fetchMenuItems = async () => {
       setIsLoading(true);
@@ -48,7 +51,7 @@ export default function Home() {
       <header className="border-b border-white/5 py-4 sticky top-0 z-10 backdrop-blur-md bg-card/80">
         <div className="container mx-auto px-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="Tablio Logo" className="h-16 w-auto object-contain" />
+            <Image src="/logo.png" alt="Tablio Logo" width={100} height={64} className="h-16 w-auto object-contain" />
             <h1 className="text-2xl font-bold tracking-tight">Tablio</h1>
           </div>
           

@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     }, { merge: true });
 
     return NextResponse.json({ success: true, message: 'PIN updated successfully' });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[UpdatePin] Error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
