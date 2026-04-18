@@ -59,7 +59,7 @@ export default function OrderCard({ order, onMessageCountChange }: OrderCardProp
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  const [elapsedMinutes, setElapsedMinutes] = useState(0);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
   useEffect(() => {
     if (order.status === 'completed' || !order.created_at) return;
@@ -68,18 +68,19 @@ export default function OrderCard({ order, onMessageCountChange }: OrderCardProp
       const date = (order.created_at as { toDate?: () => Date }).toDate 
         ? (order.created_at as { toDate: () => Date }).toDate() 
         : new Date(order.created_at as string | number | Date);
-      const diff = Math.floor((new Date().getTime() - date.getTime()) / 60000);
-      setElapsedMinutes(diff);
+      const diff = Math.floor((new Date().getTime() - date.getTime()) / 1000);
+      setElapsedSeconds(diff);
     };
 
     calculateElapsed();
-    const interval = setInterval(calculateElapsed, 30000); // Check every 30s
+    const interval = setInterval(calculateElapsed, 1000); // Check every 1s
     return () => clearInterval(interval);
   }, [order.created_at, order.status]);
 
   const getUrgencyClasses = () => {
     if (order.status === 'completed' || order.status === 'ready') return 'border-white/5';
     
+    const elapsedMinutes = Math.floor(elapsedSeconds / 60);
     if (elapsedMinutes >= 15) {
       return 'border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.3)] animate-pulse';
     } else if (elapsedMinutes >= 5) {
@@ -89,7 +90,11 @@ export default function OrderCard({ order, onMessageCountChange }: OrderCardProp
     }
   };
 
-  const [isExpanded, setIsExpanded] = useState(false);
+  const formatElapsed = () => {
+    if (elapsedSeconds < 60) return `${elapsedSeconds}s ago`;
+    return `${Math.floor(elapsedSeconds / 60)}m ago`;
+  };
+
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [messageCount, setMessageCount] = useState(0);
 
@@ -114,9 +119,9 @@ export default function OrderCard({ order, onMessageCountChange }: OrderCardProp
           <h3 className="text-5xl font-black text-primary-text leading-none tracking-tighter">
             {order.table_number}
           </h3>
-          <p className="text-sm text-secondary-text flex items-center gap-1 mt-2">
+          <p className="text-sm text-secondary-text flex items-center gap-1 mt-2 font-medium">
             <Clock size={14} />
-            {formatTime(order.created_at)}
+            {formatElapsed()}
           </p>
         </div>
         <div className={`px-4 py-1.5 rounded-full text-xs font-black border uppercase tracking-widest ${getStatusColor(order.status)}`}>
@@ -150,33 +155,27 @@ export default function OrderCard({ order, onMessageCountChange }: OrderCardProp
       )}
 
       <div className="mb-6 bg-background/50 rounded-xl overflow-hidden border border-white/5">
-        <button 
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full flex justify-between items-center p-4 hover:bg-white/5 transition-colors"
-        >
+        <div className="p-4 border-b border-white/5 bg-white/5">
           <span className="font-bold text-sm text-secondary-text">
             {order.items.length} {order.items.length === 1 ? 'ITEM' : 'ITEMS'}
           </span>
-          <span className="text-accent text-xs font-black">{isExpanded ? 'HIDE' : 'VIEW'}</span>
-        </button>
+        </div>
 
-        {isExpanded && (
-          <div className="px-4 pb-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
-            {order.items.map((item, index) => (
-              <div key={index} className="flex justify-between text-sm py-1 border-b border-white/5 last:border-0">
-                <span className="text-primary-text font-bold">
-                  <span className="text-accent mr-2">{item.quantity}x</span> 
-                  {item.name}
-                </span>
-                <span className="text-secondary-text font-mono">{formatPrice(item.price * item.quantity)}</span>
-              </div>
-            ))}
-            <div className="pt-2 flex justify-between items-center">
-              <span className="text-secondary-text text-xs">Total Amount</span>
-              <span className="text-lg font-black text-accent">{formatPrice(order.total)}</span>
+        <div className="px-4 py-4 space-y-3">
+          {order.items.map((item, index) => (
+            <div key={index} className="flex justify-between text-sm py-1 border-b border-white/5 last:border-0">
+              <span className="text-primary-text font-bold">
+                <span className="text-accent mr-2">{item.quantity}x</span> 
+                {item.name}
+              </span>
+              <span className="text-secondary-text font-mono">{formatPrice(item.price * item.quantity)}</span>
             </div>
+          ))}
+          <div className="pt-2 flex justify-between items-center">
+            <span className="text-secondary-text text-xs uppercase tracking-widest font-black">Total</span>
+            <span className="text-lg font-black text-accent">{formatPrice(order.total)}</span>
           </div>
-        )}
+        </div>
       </div>
 
       <div className="space-y-3">

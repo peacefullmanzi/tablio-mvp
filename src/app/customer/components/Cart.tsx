@@ -60,23 +60,20 @@ export default function Cart() {
 
   return (
     <>
-      {/* Sticky Bottom Bar (Always Visible when items exist) */}
+      {/* Dynamic Island Cart (Always Visible when items exist) */}
       {!isOpen && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-xl border-t border-white/5 z-50 animate-in slide-in-from-bottom-full">
+        <div className="fixed bottom-6 left-0 right-0 px-4 z-50 flex justify-center pointer-events-none">
           <button
             onClick={() => setIsOpen(true)}
-            className="w-full max-w-2xl mx-auto bg-accent text-background flex items-center justify-between px-6 py-5 rounded-2xl shadow-[0_0_30px_rgba(16,185,129,0.2)] hover:scale-[1.02] active:scale-95 transition-all"
+            className="pointer-events-auto w-full max-w-sm bg-accent/90 backdrop-blur-xl text-background flex items-center justify-between px-6 py-4 rounded-full shadow-[0_20px_40px_rgba(16,185,129,0.3)] hover:scale-105 active:scale-95 transition-all animate-in slide-in-from-bottom-10 fade-in duration-300"
           >
             <div className="flex items-center gap-3">
-              <div className="relative">
-                <ShoppingBag size={24} strokeWidth={2.5} />
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full border-2 border-accent">
-                  {itemCount}
-                </span>
+              <div className="bg-background text-accent w-8 h-8 rounded-full flex items-center justify-center font-black text-sm">
+                {itemCount}
               </div>
-              <span className="font-black text-lg tracking-tight uppercase">View My Order</span>
+              <span className="font-black text-sm tracking-widest uppercase">View Order</span>
             </div>
-            <span className="font-black text-xl">{formatPrice(total)}</span>
+            <span className="font-black text-lg">{formatPrice(total)}</span>
           </button>
         </div>
       )}

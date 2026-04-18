@@ -48,26 +48,36 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background text-primary-text">
-      <header className="border-b border-white/5 py-4 sticky top-0 z-10 backdrop-blur-md bg-card/80">
-        <div className="container mx-auto px-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Image src="/logo.png" alt="Tablio Logo" width={100} height={64} className="h-16 w-auto object-contain" />
-            <h1 className="text-2xl font-bold tracking-tight">Tablio</h1>
+      <header className="relative w-full h-36 sm:h-48 bg-background overflow-hidden border-b border-white/5">
+        <div className="absolute inset-0">
+          <div className="w-full h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white/10 via-background to-background" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+        </div>
+        
+        <div className="absolute inset-0 flex flex-col justify-end p-4 sm:p-6 pb-4 sm:pb-6">
+          <div className="flex items-end justify-between max-w-4xl mx-auto w-full">
+            <div>
+              <div className="flex items-center gap-2 sm:gap-3 mb-1">
+                <Image src="/logo.png" alt="Tablio Logo" width={48} height={48} className="h-8 sm:h-10 w-auto object-contain" />
+                <h1 className="text-2xl sm:text-4xl font-black text-primary-text tracking-tight leading-none">Tablio Kitchen</h1>
+              </div>
+              <p className="text-secondary-text text-xs sm:text-sm font-medium ml-1">Elevated dining, ordered instantly.</p>
+            </div>
+            
+            {activeOrderId && (
+              <Link 
+                href={`/customer/track/${activeOrderId}`}
+                className="flex items-center gap-2 px-4 py-3 bg-white/10 backdrop-blur-md border border-white/20 text-primary-text rounded-2xl text-sm font-bold shadow-xl active:scale-95 transition-all"
+              >
+                <ExternalLink size={16} />
+                <span className="hidden sm:inline">Track Order</span>
+              </Link>
+            )}
           </div>
-          
-          {activeOrderId && (
-            <Link 
-              href={`/customer/track/${activeOrderId}`}
-              className="flex items-center gap-2 px-4 py-2 bg-accent/10 border border-accent/20 text-accent rounded-lg text-sm font-bold hover:bg-accent hover:text-background transition-all"
-            >
-              <ExternalLink size={16} />
-              Live Status
-            </Link>
-          )}
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="w-full mx-auto pb-8">
         {isLoading ? (
           <div className="flex flex-col justify-center items-center h-64 gap-4">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>

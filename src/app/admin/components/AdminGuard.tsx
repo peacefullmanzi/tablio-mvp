@@ -9,6 +9,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
   const pathname = usePathname();
   const [authorized, setAuthorized] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     setTimeout(() => setHasMounted(true), 0);
@@ -70,8 +71,8 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
 
   return (
     <div className="flex min-h-screen bg-background">
-      <AdminSidebar />
-      <div className="flex-1 ml-64 flex flex-col min-h-screen">
+      <AdminSidebar isCollapsed={isSidebarCollapsed} setIsCollapsed={setIsSidebarCollapsed} />
+      <div className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ${isSidebarCollapsed ? 'ml-20' : 'ml-64'}`}>
         {children}
       </div>
     </div>

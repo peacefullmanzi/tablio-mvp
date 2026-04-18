@@ -76,6 +76,21 @@ export default function AdminPage() {
         } as Order);
       });
       setOrders(fetchedOrders);
+      
+      // Cleanup message counts for completed or missing orders
+      setMessageCounts(prev => {
+        const newCounts = { ...prev };
+        let changed = false;
+        Object.keys(newCounts).forEach(orderId => {
+          const order = fetchedOrders.find(o => o.id === orderId);
+          if (!order || order.status === 'completed') {
+            delete newCounts[orderId];
+            changed = true;
+          }
+        });
+        return changed ? newCounts : prev;
+      });
+      
       setIsLoading(false);
     }, (error) => {
       console.error("[AdminPage] Error receiving real-time orders updates: ", error);
@@ -112,9 +127,10 @@ export default function AdminPage() {
             <h1 className="text-3xl font-black text-primary-text tracking-tight">Active Orders</h1>
             <div className="flex gap-4 items-center">
               {activeChatRooms > 0 && (
-                <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 font-bold text-sm cursor-default animate-pulse shadow-[0_0_15px_rgba(59,130,246,0.2)]">
+                <div className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 font-bold text-sm cursor-default animate-pulse shadow-[0_0_15px_rgba(59,130,246,0.2)]">
                   <MessageSquare size={16} />
-                  {activeChatRooms} Active {activeChatRooms === 1 ? 'Chat' : 'Chats'}
+                  <span className="hidden sm:inline">{activeChatRooms} Active {activeChatRooms === 1 ? 'Chat' : 'Chats'}</span>
+                  <span className="sm:hidden">{activeChatRooms}</span>
                 </div>
               )}
               <button 
