@@ -9,6 +9,7 @@ export type OrderStatus = 'pending' | 'accepted' | 'preparing' | 'ready' | 'comp
 
 export interface Order {
   id: string;
+  restaurantId: string;
   items: CartItem[];
   total: number;
   table_number: string;

@@ -20,7 +20,7 @@ export default function MenuItem({ item }: MenuItemProps) {
           <Image src={item.image} alt={item.name} fill className="object-cover group-hover:scale-105 transition-transform duration-700" />
         </div>
       ) : (
-        <div className="w-full h-28 sm:h-36 rounded-xl relative bg-gradient-to-br from-white/5 to-transparent flex items-center justify-center shrink-0 mb-3">
+        <div className="w-full h-28 sm:h-36 rounded-xl relative bg-linear-to-br from-white/5 to-transparent flex items-center justify-center shrink-0 mb-3">
           <UtensilsCrossed size={24} className="text-secondary-text/20" />
         </div>
       )}

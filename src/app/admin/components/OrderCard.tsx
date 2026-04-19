@@ -20,10 +20,15 @@ export default function OrderCard({ order, onMessageCountChange }: OrderCardProp
     setIsUpdating(true);
     try {
       const pin = localStorage.getItem('tablio_admin_auth');
+      const restaurantId = process.env.NEXT_PUBLIC_RESTAURANT_ID;
+      if (!restaurantId) {
+        alert('Configuration error: restaurantId not set.');
+        return;
+      }
       const response = await fetch(`/api/admin/orders/${order.id}/status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus, pin })
+        body: JSON.stringify({ status: newStatus, pin, restaurantId })
       });
 
       if (!response.ok) {

@@ -22,6 +22,12 @@ export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem 
     e.preventDefault();
     if (!name || !price || !category) return;
 
+    const restaurantId = process.env.NEXT_PUBLIC_RESTAURANT_ID;
+    if (!restaurantId) {
+      alert('Configuration error: restaurantId not set. Cannot save item.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const pin = localStorage.getItem('tablio_admin_auth');
@@ -35,7 +41,7 @@ export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem 
       const response = await fetch('/api/admin/menu', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ item: itemData, pin, id: editingItem?.id })
+        body: JSON.stringify({ item: itemData, pin, id: editingItem?.id, restaurantId })
       });
 
       if (!response.ok) {

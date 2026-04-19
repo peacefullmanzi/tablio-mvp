@@ -3,8 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStore } from '@/lib/store';
-import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { ShoppingBag, X, Minus, Plus } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 
@@ -26,31 +24,48 @@ export default function Cart() {
 
     if (items.length === 0) return;
 
+    // Enforce restaurantId — must be set in the environment
+    const restaurantId = process.env.NEXT_PUBLIC_RESTAURANT_ID;
+    if (!restaurantId) {
+      console.error('[Cart] NEXT_PUBLIC_RESTAURANT_ID is not set. Cannot place order.');
+      alert('Configuration error. Please contact staff.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      const orderData = {
-        items,
-        total,
-        table_number: tableNumber,
-        status: 'pending',
-        created_at: serverTimestamp()
-      };
+      // Send order to server — server fetches real prices from DB
+      // Client only sends item IDs + quantities (prices are NOT trusted)
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          restaurantId,
+          table_number: tableNumber,
+          items: items.map(item => ({ id: item.id, quantity: item.quantity })),
+        }),
+      });
 
-      console.log("[Cart] Attempting to place order in Firestore...", orderData);
-      const docRef = await addDoc(collection(db, 'orders'), orderData);
-      console.log("[Cart] Order placed successfully. Doc ID:", docRef.id);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to place order');
+      }
+
+      console.log("[Cart] Order placed successfully. Doc ID:", data.orderId);
       
       alert('Order placed successfully!');
-      localStorage.setItem('last_order_id', docRef.id);
+      localStorage.setItem('last_order_id', data.orderId);
       clearCart();
       setTableNumber('');
       setIsOpen(false);
       
       // Redirect to tracking page
-      router.push(`/customer/track/${docRef.id}`);
+      router.push(`/customer/track/${data.orderId}`);
     } catch (error) {
-      console.error("[Cart] Error placing order in Firestore: ", error);
-      alert('Failed to place order. Please try again.');
+      console.error("[Cart] Error placing order: ", error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to place order. Please try again.';
+      alert(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

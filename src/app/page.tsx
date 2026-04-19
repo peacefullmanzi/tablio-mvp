@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { MenuItem as MenuItemType } from '@/types/menu';
 import MenuList from './customer/components/MenuList';
@@ -25,7 +25,18 @@ export default function Home() {
     const fetchMenuItems = async () => {
       setIsLoading(true);
       try {
-        const querySnapshot = await getDocs(collection(db, 'menus'));
+        const restaurantId = process.env.NEXT_PUBLIC_RESTAURANT_ID;
+        if (!restaurantId) {
+          console.error('[Home] NEXT_PUBLIC_RESTAURANT_ID is not set.');
+          setMenuItems([]);
+          return;
+        }
+
+        const q = query(
+          collection(db, 'menus'),
+          where('restaurantId', '==', restaurantId)
+        );
+        const querySnapshot = await getDocs(q);
         
         if (querySnapshot.empty) {
           setMenuItems([]);
@@ -49,9 +60,9 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background text-primary-text">
       <header className="relative w-full h-36 sm:h-48 bg-background overflow-hidden border-b border-white/5">
-        <div className="absolute inset-0">
-          <div className="w-full h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white/10 via-background to-background" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-24 -right-24 w-96 h-96 bg-accent/15 blur-[100px] rounded-full" />
+          <div className="absolute inset-0 bg-linear-to-t from-background via-transparent to-transparent" />
         </div>
         
         <div className="absolute inset-0 flex flex-col justify-end p-4 sm:p-6 pb-4 sm:pb-6">

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { collection, query, onSnapshot } from 'firebase/firestore';
+import { collection, query, onSnapshot, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { MenuItem } from '@/types/menu';
 import MenuItemModal from '../components/MenuItemModal';
@@ -16,7 +16,17 @@ export default function MenuManagementPage() {
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
 
   useEffect(() => {
-    const q = query(collection(db, 'menus'));
+    const restaurantId = process.env.NEXT_PUBLIC_RESTAURANT_ID;
+    if (!restaurantId) {
+      console.error('[MenuManagement] NEXT_PUBLIC_RESTAURANT_ID is not set.');
+      setIsLoading(false);
+      return;
+    }
+
+    const q = query(
+      collection(db, 'menus'),
+      where('restaurantId', '==', restaurantId)
+    );
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const fetchedItems = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -31,12 +41,17 @@ export default function MenuManagementPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this item?")) return;
+    const restaurantId = process.env.NEXT_PUBLIC_RESTAURANT_ID;
+    if (!restaurantId) {
+      alert('Configuration error: restaurantId not set.');
+      return;
+    }
     try {
       const pin = localStorage.getItem('tablio_admin_auth');
       const response = await fetch(`/api/admin/menu/${id}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pin })
+        body: JSON.stringify({ pin, restaurantId })
       });
 
       if (!response.ok) {

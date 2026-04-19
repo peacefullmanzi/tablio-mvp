@@ -1,19 +1,26 @@
 import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
-import { validateAdminPin } from '@/lib/admin-utils';
+import { parseAndValidateBody, requireAdminPin, requireRestaurantId } from '@/lib/api-security';
 
 export async function POST(request: Request) {
   try {
-    const { pin } = await request.json();
+    // 1. Parse body with 1MB size limit
+    const parsed = await parseAndValidateBody(request);
+    if ('error' in parsed) return parsed.error;
+    const body = parsed.data;
 
-    // 1. Validate Admin PIN
-    const isValid = await validateAdminPin(pin);
-    if (!isValid) {
-      return NextResponse.json({ error: 'Unauthorized: Invalid PIN' }, { status: 401 });
-    }
+    // 2. Validate restaurantId
+    const restaurantError = requireRestaurantId(body);
+    if (restaurantError) return restaurantError;
+    const restaurantId = body.restaurantId as string;
 
-    // 2. Fetch completed orders using Admin SDK
+    // 3. Validate Admin PIN
+    const pinError = await requireAdminPin(body);
+    if (pinError) return pinError;
+
+    // 4. Fetch only THIS restaurant's completed orders
     const snapshot = await adminDb.collection('orders')
+      .where('restaurantId', '==', restaurantId)
       .where('status', '==', 'completed')
       .get();
 
@@ -21,7 +28,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, message: 'No completed orders to clear' });
     }
 
-    // 3. Delete in batch
+    // 5. Delete in batch
     const batch = adminDb.batch();
     snapshot.forEach((doc) => {
       batch.delete(doc.ref);

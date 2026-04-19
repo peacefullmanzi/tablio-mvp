@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
 import { validateAdminPin } from '@/lib/admin-utils';
 import { headers } from 'next/headers';
+import { parseAndValidateBody, requireRestaurantId } from '@/lib/api-security';
 
 // In-memory rate limiting (IP-based)
 const RATE_LIMIT_MAP = new Map<string, { count: number; resetTime: number }>();
@@ -10,7 +11,17 @@ const WINDOW_MS = 60 * 1000; // 1 minute
 
 export async function POST(request: Request) {
   try {
-    const { pin, restaurantId = 'default' } = await request.json();
+    // 1. Parse body with 1MB size limit
+    const parsed = await parseAndValidateBody(request);
+    if ('error' in parsed) return parsed.error;
+    const body = parsed.data;
+
+    // 2. Validate restaurantId
+    const restaurantError = requireRestaurantId(body);
+    if (restaurantError) return restaurantError;
+    const restaurantId = body.restaurantId as string;
+
+    const { pin } = body;
     const headersList = await headers();
     const ip = headersList.get('x-forwarded-for') || 'unknown';
 
@@ -36,7 +47,7 @@ export async function POST(request: Request) {
       }
     }
 
-    if (!pin) {
+    if (!pin || typeof pin !== 'string') {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 400 });
     }
 

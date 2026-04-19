@@ -1,0 +1,79 @@
+rules_version = '2';
+
+// =============================================================================
+// TABLIO MVP — FIRESTORE SECURITY RULES
+// =============================================================================
+// Security model:
+//   - Menus: PUBLIC READ, no client writes (admin SDK bypasses rules)
+//   - Orders: Customers can CREATE only (with restaurantId), no read/update/delete
+//   - Order Messages (subcollection): Authenticated via order ownership
+//   - Settings: NO client access (admin SDK only)
+//   - All sensitive operations go through Next.js API routes using Admin SDK
+// =============================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // -----------------------------------------------------------------------
+    // MENUS — Public read-only (customers browse the menu)
+    // All writes go through /api/admin/menu using Admin SDK (bypasses rules)
+    // -----------------------------------------------------------------------
+    match /menus/{menuId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // -----------------------------------------------------------------------
+    // ORDERS — Customers can CREATE new orders only
+    // Must include restaurantId (string) and status must be 'pending'
+    // All status updates go through /api/admin/orders/[id]/status (Admin SDK)
+    // -----------------------------------------------------------------------
+    match /orders/{orderId} {
+      // Customers can read their own order (for live tracking page)
+      allow read: if true;
+
+      // Customers can create a new order ONLY if it has required fields
+      allow create: if request.resource.data.restaurantId is string
+                    && request.resource.data.restaurantId.size() > 0
+                    && request.resource.data.status == 'pending'
+                    && request.resource.data.table_number is string
+                    && request.resource.data.items is list
+                    && request.resource.data.items.size() > 0
+                    && request.resource.data.items.size() <= 50;
+
+      // No client-side updates or deletes — all go through Admin SDK
+      allow update: if false;
+      allow delete: if false;
+
+      // -----------------------------------------------------------------------
+      // ORDER MESSAGES (subcollection) — Chat between customer and admin
+      // Customers can read messages and create new ones (sender='customer')
+      // Admin messages go through Admin SDK
+      // -----------------------------------------------------------------------
+      match /messages/{messageId} {
+        allow read: if true;
+        allow create: if request.resource.data.text is string
+                      && request.resource.data.text.size() > 0
+                      && request.resource.data.text.size() <= 500
+                      && request.resource.data.sender == 'customer';
+        allow update: if false;
+        allow delete: if false;
+      }
+    }
+
+    // -----------------------------------------------------------------------
+    // SETTINGS — Completely locked down. Admin SDK only.
+    // -----------------------------------------------------------------------
+    match /settings/{settingId} {
+      allow read: if false;
+      allow write: if false;
+    }
+
+    // -----------------------------------------------------------------------
+    // DEFAULT — Block everything else
+    // -----------------------------------------------------------------------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { collection, query, onSnapshot, orderBy } from 'firebase/firestore';
+import { collection, query, onSnapshot, orderBy, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Order } from '@/types/order';
 import OrderList from './components/OrderList';
@@ -39,10 +39,15 @@ export default function AdminPage() {
 
     try {
       const pin = localStorage.getItem('tablio_admin_auth');
+      const restaurantId = process.env.NEXT_PUBLIC_RESTAURANT_ID;
+      if (!restaurantId) {
+        alert('Configuration error: restaurantId not set.');
+        return;
+      }
       const response = await fetch('/api/admin/orders/clear-history', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pin })
+        body: JSON.stringify({ pin, restaurantId })
       });
 
       if (!response.ok) {
@@ -58,9 +63,17 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
-    // Setup real-time listener for orders
+    // Setup real-time listener for this restaurant's orders only
+    const restaurantId = process.env.NEXT_PUBLIC_RESTAURANT_ID;
+    if (!restaurantId) {
+      console.error('[AdminPage] NEXT_PUBLIC_RESTAURANT_ID is not set. Cannot load orders.');
+      setIsLoading(false);
+      return;
+    }
+
     const q = query(
       collection(db, 'orders'),
+      where('restaurantId', '==', restaurantId),
       orderBy('created_at', 'desc')
     );
 
