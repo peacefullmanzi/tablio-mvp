@@ -24,6 +24,14 @@ service cloud.firestore {
     }
 
     // -----------------------------------------------------------------------
+    // RESTAURANTS — Public read-only for verification
+    // -----------------------------------------------------------------------
+    match /restaurants/{restaurantId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // -----------------------------------------------------------------------
     // ORDERS — Customers can CREATE new orders only
     // Must include restaurantId (string) and status must be 'pending'
     // All status updates go through /api/admin/orders/[id]/status (Admin SDK)

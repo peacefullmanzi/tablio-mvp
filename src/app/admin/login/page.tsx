@@ -17,12 +17,15 @@ function LoginContent() {
   const getRestaurantId = () => ridParam || localStorage.getItem('tablio_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID;
 
   useEffect(() => {
-    // If already authenticated, verify and redirect
-    const auth = localStorage.getItem('tablio_admin_auth');
-    if (auth) {
-      router.push('/admin');
+    // If already authenticated for THIS restaurant, verify and redirect
+    const restaurantId = getRestaurantId();
+    const authKey = restaurantId ? `tablio_admin_auth_${restaurantId}` : 'tablio_admin_auth';
+    const auth = localStorage.getItem(authKey);
+    
+    if (auth && restaurantId) {
+      router.push(`/admin?rid=${restaurantId}`);
     }
-  }, [router]);
+  }, [router, ridParam]);
 
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -59,8 +62,9 @@ function LoginContent() {
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem('tablio_admin_auth', pin);
-        router.push('/admin');
+        const authKey = `tablio_admin_auth_${restaurantId}`;
+        localStorage.setItem(authKey, pin);
+        router.push(`/admin?rid=${restaurantId}`);
       } else {
         setError(data.error || 'Invalid credentials');
         setPin('');

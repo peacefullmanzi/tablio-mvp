@@ -4,9 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import AdminSidebar from './AdminSidebar';
 
-import { Suspense } from 'react';
-
-function AdminGuardContent({ children }: { children: React.ReactNode }) {
+export default function AdminGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -28,8 +26,9 @@ function AdminGuardContent({ children }: { children: React.ReactNode }) {
     }
 
     const verifyAccess = async () => {
-      const auth = localStorage.getItem('tablio_admin_auth');
       const restaurantId = getRestaurantId();
+      const authKey = restaurantId ? `tablio_admin_auth_${restaurantId}` : 'tablio_admin_auth';
+      const auth = localStorage.getItem(authKey);
       
       if (!auth || !restaurantId) {
         router.push(`/admin/login${restaurantId ? `?rid=${restaurantId}` : ''}`);
@@ -47,8 +46,8 @@ function AdminGuardContent({ children }: { children: React.ReactNode }) {
         if (response.ok) {
           setAuthorized(true);
         } else {
-          localStorage.removeItem('tablio_admin_auth');
-          router.push('/admin/login');
+          localStorage.removeItem(authKey);
+          router.push(`/admin/login?rid=${restaurantId}`);
           setAuthorized(false);
         }
       } catch (err) {
@@ -84,19 +83,5 @@ function AdminGuardContent({ children }: { children: React.ReactNode }) {
         {children}
       </div>
     </div>
-  );
-}
-
-export default function AdminGuard({ children }: { children: React.ReactNode }) {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
-      </div>
-    }>
-      <AdminGuardContent>
-        {children}
-      </AdminGuardContent>
-    </Suspense>
   );
 }
