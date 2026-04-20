@@ -98,28 +98,28 @@ export default function RestaurantMenuPage({ params }: { params: Promise<{ resta
 
   return (
     <div className="min-h-screen bg-background text-primary-text">
-      <header className="relative w-full h-12 sm:h-16 bg-background overflow-hidden border-b border-white/5">
+      <header className="relative w-full h-32 sm:h-40 bg-background overflow-hidden border-b border-white/5">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-24 -right-24 w-96 h-96 bg-accent/15 blur-[100px] rounded-full" />
           <div className="absolute inset-0 bg-linear-to-t from-background via-transparent to-transparent" />
         </div>
         
-        <div className="absolute inset-0 flex flex-col justify-end p-4 sm:p-6 pb-4 sm:pb-6">
+        <div className="absolute inset-0 flex flex-col justify-end p-6 pb-6">
           <div className="flex items-end justify-between max-w-4xl mx-auto w-full">
             <div>
-              <div className="flex items-center gap-2 sm:gap-3 mb-1">
-                <Image src="/logo.png" alt="Tablio Logo" width={48} height={48} className="h-8 sm:h-10 w-auto object-contain" />
-                <h1 className="text-2xl sm:text-4xl font-black text-primary-text tracking-tight leading-none">
+              <div className="flex items-center gap-3 mb-2">
+                <Image src="/logo.png" alt="Tablio Logo" width={64} height={64} className="h-10 sm:h-12 w-auto object-contain" />
+                <h1 className="text-3xl sm:text-5xl font-black text-primary-text tracking-tight leading-none">
                   {restaurant?.name || 'Tablio Kitchen'}
                 </h1>
               </div>
-              <p className="text-secondary-text text-xs sm:text-sm font-medium ml-1">Elevated dining, ordered instantly.</p>
+              <p className="text-secondary-text text-sm sm:text-base font-medium ml-1">Elevated dining, ordered instantly.</p>
             </div>
             
             {activeOrderId && (
               <Link 
                 href={`/customer/track/${activeOrderId}`}
-                className="flex items-center gap-2 px-4 py-3 bg-white/10 backdrop-blur-md border border-white/20 text-primary-text rounded-2xl text-sm font-bold shadow-xl active:scale-95 transition-all"
+                className="mb-1 flex items-center gap-2 px-4 py-3 bg-white/10 backdrop-blur-md border border-white/20 text-primary-text rounded-2xl text-sm font-bold shadow-xl active:scale-95 transition-all"
               >
                 <ExternalLink size={16} />
                 <span className="hidden sm:inline">Track Order</span>

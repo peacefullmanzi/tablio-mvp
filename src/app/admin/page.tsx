@@ -25,7 +25,7 @@ function AdminContent() {
   const [messageCounts, setMessageCounts] = useState<Record<string, number>>({});
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
 
   // Unified restaurantId logic
   const getRestaurantId = () => {
