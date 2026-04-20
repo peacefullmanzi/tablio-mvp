@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { collection, query, onSnapshot, orderBy, where } from 'firebase/firestore';
+import { collection, query, onSnapshot, orderBy, where, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Order } from '@/types/order';
 import OrderList from './components/OrderList';
 import { RefreshCcw, Bell, BellOff, History, Inbox, Trash2, MessageSquare } from 'lucide-react';
+import { OrderCardSkeleton } from './components/Skeleton';
 
 import { useSearchParams } from 'next/navigation';
 
@@ -94,7 +95,9 @@ function AdminContent() {
 
     const q = query(
       collection(db, 'orders'),
-      where('restaurantId', '==', restaurantId)
+      where('restaurantId', '==', restaurantId),
+      orderBy('created_at', 'desc'),
+      limit(100)
     );
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -244,8 +247,10 @@ function AdminContent() {
 
       <main className="container mx-auto px-4">
         {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {[...Array(8)].map((_, i) => (
+              <OrderCardSkeleton key={i} />
+            ))}
           </div>
         ) : filteredOrders.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-secondary-text bg-card rounded-2xl border border-white/5">

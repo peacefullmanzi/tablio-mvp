@@ -9,6 +9,7 @@ import Cart from '../../customer/components/Cart';
 import { UtensilsCrossed, ExternalLink, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { MenuItemSkeleton } from '../../admin/components/Skeleton';
 
 interface RestaurantData {
   name: string;
@@ -33,9 +34,11 @@ export default function RestaurantMenuPage({ params }: { params: Promise<{ resta
       setIsLoading(true);
       setError(null);
       try {
-        // 1. Fetch Restaurant Info directly by ID
-        const rDocRef = doc(db, 'restaurants', restaurantId);
-        const rDoc = await getDoc(rDocRef);
+        // Parallel Fetch for speed optimization
+        const [rDoc, querySnapshot] = await Promise.all([
+          getDoc(doc(db, 'restaurants', restaurantId)),
+          getDocs(query(collection(db, 'menus'), where('restaurantId', '==', restaurantId)))
+        ]);
         
         if (!rDoc.exists()) {
           setError("Restaurant not found. Please check the link or scan the QR code again.");
@@ -46,13 +49,6 @@ export default function RestaurantMenuPage({ params }: { params: Promise<{ resta
         const rData = rDoc.data();
         setRestaurant({ name: rData.name });
 
-        // 2. Fetch Menu Items for this specific restaurant
-        const q = query(
-          collection(db, 'menus'),
-          where('restaurantId', '==', restaurantId)
-        );
-        const querySnapshot = await getDocs(q);
-        
         const items = querySnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
@@ -70,6 +66,22 @@ export default function RestaurantMenuPage({ params }: { params: Promise<{ resta
       fetchData();
     }
   }, [restaurantId]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background p-6 space-y-8 animate-in fade-in duration-500">
+        <header className="space-y-4">
+          <div className="h-12 w-48 bg-white/5 rounded-2xl animate-pulse" />
+          <div className="h-4 w-32 bg-white/5 rounded-lg animate-pulse" />
+        </header>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <MenuItemSkeleton key={i} />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
     return (

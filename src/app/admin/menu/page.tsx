@@ -8,6 +8,7 @@ import MenuItemModal from '../components/MenuItemModal';
 import { Utensils, Plus, Edit2, Trash2 } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 import Image from 'next/image';
+import { MenuItemSkeleton } from '../components/Skeleton';
 
 import { useSearchParams } from 'next/navigation';
 
@@ -118,8 +119,10 @@ function MenuContent() {
 
       <main className="container mx-auto px-4">
         {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <MenuItemSkeleton key={i} />
+            ))}
           </div>
         ) : items.length === 0 ? (
           <div className="text-center py-20 bg-card rounded-2xl border border-white/5">
