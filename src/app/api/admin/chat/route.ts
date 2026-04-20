@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
-import { serverTimestamp } from 'firebase-admin/firestore';
+import { FieldValue } from 'firebase-admin/firestore';
 import { parseAndValidateBody, requireAdminPin, requireRestaurantId } from '@/lib/api-security';
 
 export async function POST(request: Request) {
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     await adminDb.collection('orders').doc(orderId).collection('messages').add({
       text,
       sender: 'admin',
-      timestamp: serverTimestamp()
+      timestamp: FieldValue.serverTimestamp()
     });
 
     return NextResponse.json({ success: true });
