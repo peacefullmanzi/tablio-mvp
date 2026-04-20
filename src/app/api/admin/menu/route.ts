@@ -44,8 +44,8 @@ export async function POST(request: Request) {
 
     // Optional image field validation
     if (item.image !== undefined && item.image !== null) {
-      if (typeof item.image !== 'string' || (item.image as string).length > 2000) {
-        return NextResponse.json({ error: 'Image URL must be a string (max 2000 chars)' }, { status: 400 });
+      if (typeof item.image !== 'string' || (item.image as string).length > 10000000) {
+        return NextResponse.json({ error: 'Image data/URL is too long (max 10MB)' }, { status: 400 });
       }
     }
 
