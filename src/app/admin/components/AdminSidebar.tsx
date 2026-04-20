@@ -34,11 +34,10 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: AdminSideb
   return (
     <>
       <aside className={`h-screen fixed left-0 top-0 bg-card/90 backdrop-blur-2xl border-r border-white/10 flex flex-col z-50 transition-all duration-300 
-        ${isCollapsed ? 'w-20 -translate-x-full lg:translate-x-0' : 'w-64 -translate-x-full lg:translate-x-0'} 
-        lg:static lg:h-auto`}>
+        ${isCollapsed ? 'w-20 -translate-x-full lg:translate-x-0' : 'w-64 translate-x-0'}`}>
         <button 
           onClick={() => setIsCollapsed(!isCollapsed)} 
-          className="absolute -right-3 top-8 bg-accent text-background rounded-full p-1 shadow-lg hover:scale-110 transition-transform hidden lg:block"
+          className="absolute -right-3 top-8 bg-accent text-background rounded-full p-1 shadow-lg hover:scale-110 transition-transform"
         >
           {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
         </button>

@@ -5,12 +5,11 @@ import { collection, query, onSnapshot, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { MenuItem } from '@/types/menu';
 import MenuItemModal from '../components/MenuItemModal';
-import { Utensils, Plus, Edit2, Trash2 } from 'lucide-react';
+import { Utensils, Plus, Edit2, Trash2, Search, Filter, LayoutDashboard, Menu } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 import Image from 'next/image';
 import { MenuItemSkeleton } from '../components/Skeleton';
 import AdminSidebar from '../components/AdminSidebar';
-import { Search, Filter, LayoutDashboard } from 'lucide-react';
 
 import { useSearchParams } from 'next/navigation';
 
@@ -111,14 +110,20 @@ function MenuContent() {
   };
 
   return (
-    <div className="h-screen bg-background flex overflow-hidden w-full max-w-full">
+    <div className="h-screen bg-background flex overflow-hidden">
       <AdminSidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
       
-      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 w-full ${isCollapsed ? 'lg:pl-20' : 'lg:pl-64'}`}>
-        <header className="bg-background/80 backdrop-blur-xl border-b border-white/5 pt-6 pb-4 lg:pt-8 lg:pb-6 sticky top-0 z-10 w-full">
+      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isCollapsed ? 'lg:pl-20' : 'lg:pl-64'}`}>
+        <header className="bg-background/80 backdrop-blur-xl border-b border-white/5 pt-6 pb-4 lg:pt-8 lg:pb-6 sticky top-0 z-10">
           <div className="container mx-auto px-4 lg:px-6">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 lg:gap-6 mb-2 lg:mb-6">
-              <div className="px-1 lg:px-0">
+              <div className="px-1 lg:px-0 flex items-center gap-3">
+                <button 
+                  onClick={() => setIsCollapsed(!isCollapsed)}
+                  className="p-2 -ml-2 lg:hidden text-primary-text hover:bg-white/5 rounded-lg"
+                >
+                  <Menu size={24} />
+                </button>
                 <h1 className="text-xl lg:text-3xl font-black text-primary-text tracking-tight flex items-center gap-3">
                   Menu Manager
                   <span className="bg-accent/10 text-accent text-xs px-3 py-1 rounded-full border border-accent/20">
