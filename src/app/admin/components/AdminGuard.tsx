@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import AdminSidebar from './AdminSidebar';
 
-export default function AdminGuard({ children }: { children: React.ReactNode }) {
+import { Suspense } from 'react';
+
+function AdminGuardContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -82,5 +84,19 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
         {children}
       </div>
     </div>
+  );
+}
+
+export default function AdminGuard({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
+      </div>
+    }>
+      <AdminGuardContent>
+        {children}
+      </AdminGuardContent>
+    </Suspense>
   );
 }
