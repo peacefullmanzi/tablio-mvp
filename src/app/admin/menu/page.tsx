@@ -66,7 +66,8 @@ function MenuContent() {
       return;
     }
     try {
-      const pin = localStorage.getItem('tablio_admin_auth');
+      const authKey = `tablio_admin_auth_${restaurantId}`;
+      const pin = localStorage.getItem(authKey) || localStorage.getItem('tablio_admin_auth');
       const response = await fetch(`/api/admin/menu/${id}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },

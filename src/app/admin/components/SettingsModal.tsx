@@ -35,17 +35,28 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
     setIsSubmitting(true);
     try {
+      const getRestaurantId = () => {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('rid') || localStorage.getItem('tablio_rid');
+      };
+      
+      const restaurantId = getRestaurantId();
+
       const response = await fetch('/api/admin/settings/pin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ currentPin, newPin })
+        body: JSON.stringify({ currentPin, newPin, restaurantId })
       });
 
       const data = await response.json();
 
       if (response.ok) {
         setSuccess(true);
-        localStorage.setItem('tablio_admin_auth', newPin);
+        if (restaurantId) {
+          localStorage.setItem(`tablio_admin_auth_${restaurantId}`, newPin);
+        } else {
+          localStorage.setItem('tablio_admin_auth', newPin);
+        }
         setTimeout(() => {
           onClose();
           setSuccess(false);

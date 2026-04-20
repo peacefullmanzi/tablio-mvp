@@ -17,14 +17,22 @@ export default function OrderCard({ order, onMessageCountChange }: OrderCardProp
   const [isUpdating, setIsUpdating] = useState(false);
 
   const updateStatus = async (newStatus: OrderStatus) => {
+    const getRestaurantId = () => {
+      if (typeof window === 'undefined') return '';
+      const params = new URLSearchParams(window.location.search);
+      return params.get('rid') || localStorage.getItem('tablio_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID || '';
+    };
+
     setIsUpdating(true);
     try {
-      const pin = localStorage.getItem('tablio_admin_auth');
-      const restaurantId = process.env.NEXT_PUBLIC_RESTAURANT_ID;
+      const restaurantId = getRestaurantId();
       if (!restaurantId) {
         alert('Configuration error: restaurantId not set.');
         return;
       }
+      const authKey = `tablio_admin_auth_${restaurantId}`;
+      const pin = localStorage.getItem(authKey) || localStorage.getItem('tablio_admin_auth');
+      
       const response = await fetch(`/api/admin/orders/${order.id}/status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

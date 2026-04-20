@@ -57,12 +57,14 @@ function AdminContent() {
     if (completedOrders.length === 0 || !confirm(`Delete all ${completedOrders.length} completed orders? This cannot be undone.`)) return;
 
     try {
-      const pin = localStorage.getItem('tablio_admin_auth');
       const restaurantId = getRestaurantId();
       if (!restaurantId) {
         alert('Configuration error: restaurantId not set.');
         return;
       }
+      const authKey = `tablio_admin_auth_${restaurantId}`;
+      const pin = localStorage.getItem(authKey) || localStorage.getItem('tablio_admin_auth');
+
       const response = await fetch('/api/admin/orders/clear-history', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

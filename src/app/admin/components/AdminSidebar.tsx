@@ -17,9 +17,17 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: AdminSideb
   const router = useRouter();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
+  const getRestaurantId = () => {
+    if (typeof window === 'undefined') return '';
+    const params = new URLSearchParams(window.location.search);
+    return params.get('rid') || localStorage.getItem('tablio_rid') || '';
+  };
+
+  const restaurantId = getRestaurantId();
+
   const navItems = [
-    { label: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
-    { label: 'Menu Manager', icon: Utensils, href: '/admin/menu' },
+    { label: 'Dashboard', icon: LayoutDashboard, href: `/admin?rid=${restaurantId}` },
+    { label: 'Menu Manager', icon: Utensils, href: `/admin/menu?rid=${restaurantId}` },
   ];
 
   return (
@@ -42,7 +50,7 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: AdminSideb
             {isCollapsed ? 'Menu' : 'Main Menu'}
           </div>
           {navItems.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive = pathname === item.href.split('?')[0];
             return (
               <Link
                 key={item.href}
@@ -72,8 +80,13 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: AdminSideb
           </button>
           <button
             onClick={() => {
-              localStorage.removeItem('tablio_admin_auth');
-              router.push('/admin/login');
+              const rid = getRestaurantId();
+              if (rid) {
+                localStorage.removeItem(`tablio_admin_auth_${rid}`);
+              } else {
+                localStorage.removeItem('tablio_admin_auth');
+              }
+              router.push(`/admin/login${rid ? `?rid=${rid}` : ''}`);
             }}
             title={isCollapsed ? "Logout" : undefined}
             className={`w-full flex items-center px-4 py-3 rounded-xl font-bold text-red-400 hover:bg-red-400/10 transition-all ${isCollapsed ? 'justify-center' : 'gap-3'}`}

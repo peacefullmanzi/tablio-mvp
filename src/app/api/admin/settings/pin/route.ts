@@ -10,10 +10,15 @@ export async function POST(request: Request) {
     if ('error' in parsed) return parsed.error;
     const body = parsed.data;
 
-    const { currentPin, newPin } = body;
+    const { currentPin, newPin, restaurantId } = body;
+    const now = new Date();
 
     if (!currentPin || !newPin || typeof currentPin !== 'string' || typeof newPin !== 'string') {
       return NextResponse.json({ error: 'Current PIN and new PIN are required' }, { status: 400 });
+    }
+
+    if (!restaurantId || typeof restaurantId !== 'string') {
+      return NextResponse.json({ error: 'restaurantId is required' }, { status: 400 });
     }
 
     // 2. Enforce Strong PIN Policy
@@ -22,8 +27,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: strength.error }, { status: 400 });
     }
 
-    // 3. Verify Current PIN
-    const isCurrentValid = await validateAdminPin(currentPin);
+    // 3. Verify Current PIN for this specific restaurant
+    const isCurrentValid = await validateAdminPin(currentPin, restaurantId);
 
     if (!isCurrentValid) {
       return NextResponse.json({ error: 'Unauthorized: Invalid current PIN' }, { status: 401 });
@@ -32,11 +37,11 @@ export async function POST(request: Request) {
     // 4. Hash New PIN for Secure Storage
     const hashedPin = hashPin(newPin);
 
-    // 5. Update PIN in Firestore
-    await adminDb.collection('settings').doc('config').set({
-      adminPin: hashedPin,
-      updated_at: new Date()
-    }, { merge: true });
+    // 5. Update PIN in Firestore for the specific restaurant
+    await adminDb.collection('restaurants').doc(restaurantId).update({
+      adminPinHash: hashedPin,
+      updated_at: now
+    });
 
     return NextResponse.json({ success: true, message: 'PIN updated successfully' });
   } catch (error: unknown) {

@@ -22,7 +22,12 @@ export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem 
     e.preventDefault();
     if (!name || !price || !category) return;
 
-    const restaurantId = process.env.NEXT_PUBLIC_RESTAURANT_ID;
+    const getRestaurantId = () => {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('rid') || localStorage.getItem('tablio_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID;
+    };
+
+    const restaurantId = getRestaurantId();
     if (!restaurantId) {
       alert('Configuration error: restaurantId not set. Cannot save item.');
       return;
@@ -30,7 +35,9 @@ export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem 
 
     setIsSubmitting(true);
     try {
-      const pin = localStorage.getItem('tablio_admin_auth');
+      const authKey = `tablio_admin_auth_${restaurantId}`;
+      const pin = localStorage.getItem(authKey) || localStorage.getItem('tablio_admin_auth');
+      
       const itemData = {
         name,
         price: parseFloat(price),
