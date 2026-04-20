@@ -18,19 +18,27 @@ export async function POST(request: Request) {
     const pinError = await requireAdminPin(body);
     if (pinError) return pinError;
 
-    const { orderId, text } = body;
+    const orderId = body.orderId as string;
+    const text = body.text as string;
+
     if (!orderId || !text) {
       return NextResponse.json({ error: 'Missing orderId or text' }, { status: 400 });
     }
 
+    if (!adminDb) {
+      return NextResponse.json({ error: 'Firebase Admin not initialized' }, { status: 500 });
+    }
+
     // Security: Check if order belongs to restaurant
-    const orderDoc = await adminDb.collection('orders').doc(orderId).get();
+    const orderRef = adminDb.collection('orders').doc(orderId);
+    const orderDoc = await orderRef.get();
+    
     if (!orderDoc.exists || orderDoc.data()?.restaurantId !== restaurantId) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      return NextResponse.json({ error: 'Forbidden: Order mismatch' }, { status: 403 });
     }
 
     // Add message via Admin SDK
-    await adminDb.collection('orders').doc(orderId).collection('messages').add({
+    await orderRef.collection('messages').add({
       text,
       sender: 'admin',
       timestamp: FieldValue.serverTimestamp()
