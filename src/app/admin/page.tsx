@@ -24,17 +24,9 @@ function AdminContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
 
-  // Unified restaurantId logic
-  const getRestaurantId = () => {
-    return ridParam || localStorage.getItem('tablio_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID;
-  };
-
-  useEffect(() => {
-    const rid = getRestaurantId();
-    if (rid && rid !== localStorage.getItem('tablio_rid')) {
-      localStorage.setItem('tablio_rid', rid);
-    }
-  }, [ridParam]);
+  const [restaurantId, setRestaurantId] = useState<string | null>(null);
+  const prevOrderCount = useRef<number | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const handleMessageCountChange = useCallback((orderId: string, count: number) => {
     setMessageCounts(prev => {
@@ -44,26 +36,17 @@ function AdminContent() {
   }, []);
 
   const activeChatRooms = Object.values(messageCounts).reduce((a, b) => a + b, 0);
-  
-  const prevOrderCount = useRef<number | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const handleRefresh = () => {
-    console.log("[AdminPage] Manual refresh triggered.");
     setRefreshKey(prev => prev + 1);
   };
-
 
   const handleClearHistory = async () => {
     const completedOrders = orders.filter(o => o.status === 'completed');
     if (completedOrders.length === 0 || !confirm(`Delete all ${completedOrders.length} completed orders? This cannot be undone.`)) return;
 
     try {
-      const restaurantId = getRestaurantId();
-      if (!restaurantId) {
-        alert('Configuration error: restaurantId not set.');
-        return;
-      }
+      if (!restaurantId) return;
       const authKey = `tablio_admin_auth_${restaurantId}`;
       const pin = localStorage.getItem(authKey) || localStorage.getItem('tablio_admin_auth');
 
@@ -73,36 +56,42 @@ function AdminContent() {
         body: JSON.stringify({ pin, restaurantId })
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to clear history');
-      }
+      if (!response.ok) throw new Error('Failed to clear history');
       alert("History cleared successfully!");
-    } catch (error: unknown) {
-      console.error("Failed to clear history:", error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to clear history.";
-      alert(errorMessage);
+    } catch (error) {
+      console.error(error);
+      alert("Failed to clear history.");
     }
   };
 
+  // Sync restaurantId from URL or Storage
   useEffect(() => {
-    // Setup real-time listener for this restaurant's orders only
-    const restaurantId = getRestaurantId();
+    const rid = ridParam || localStorage.getItem('tablio_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID;
+    if (rid) {
+      setRestaurantId(rid);
+      if (rid !== localStorage.getItem('tablio_rid')) {
+        localStorage.setItem('tablio_rid', rid);
+      }
+    }
+  }, [ridParam]);
+
+  useEffect(() => {
     if (!restaurantId) {
-      console.error('[AdminPage] No restaurantId found. Cannot load orders.');
-      setIsLoading(false);
+      console.log("[AdminPage] Waiting for restaurantId...");
       return;
     }
+
+    console.log(`[AdminPage] Starting real-time listener for: ${restaurantId}`);
+    setIsLoading(true);
 
     const q = query(
       collection(db, 'orders'),
       where('restaurantId', '==', restaurantId),
-      orderBy('created_at', 'desc'),
       limit(100)
     );
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      console.log(`[AdminPage] Snapshot received. Found ${querySnapshot.size} orders.`);
+      console.log(`[AdminPage] Snapshot update: Found ${querySnapshot.size} orders for ${restaurantId}`);
       const fetchedOrders: Order[] = [];
       querySnapshot.forEach((doc) => {
         const data = doc.data();
@@ -112,8 +101,15 @@ function AdminContent() {
           created_at: data.created_at?.toDate ? data.created_at.toDate() : data.created_at
         } as Order);
       });
-      setOrders(fetchedOrders);
-      
+
+      const sortedOrders = fetchedOrders.sort((a, b) => {
+        const dateA = a.created_at instanceof Date ? a.created_at.getTime() : 0;
+        const dateB = b.created_at instanceof Date ? b.created_at.getTime() : 0;
+        return dateB - dateA;
+      });
+
+      setOrders(sortedOrders);
+
       // Cleanup message counts for completed or missing orders
       setMessageCounts(prev => {
         const newCounts = { ...prev };
@@ -127,15 +123,15 @@ function AdminContent() {
         });
         return changed ? newCounts : prev;
       });
-      
+
       setIsLoading(false);
     }, (error) => {
-      console.error("[AdminPage] Error receiving real-time orders updates: ", error);
+      console.error("[AdminPage] Firestore error:", error);
       setIsLoading(false);
     });
 
     return () => unsubscribe();
-  }, [refreshKey, ridParam]);
+  }, [restaurantId, refreshKey]);
 
   // Handle Notifications
   useEffect(() => {
@@ -184,7 +180,12 @@ function AdminContent() {
                     {filteredOrders.length}
                   </span>
                 </h1>
-                <p className="text-secondary-text text-sm font-medium hidden lg:block">Real-time table order management</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-secondary-text text-sm font-medium hidden lg:block">Real-time table order management</p>
+                  <span className="text-[10px] text-secondary-text/30 font-mono uppercase tracking-widest bg-white/5 px-2 py-0.5 rounded">
+                    ID: {restaurantId || 'Disconnected'}
+                  </span>
+                </div>
               </div>
             </div>
 

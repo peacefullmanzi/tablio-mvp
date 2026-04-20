@@ -83,7 +83,7 @@ export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem 
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[calc(90vh-140px)] overflow-y-auto no-scrollbar">
           <div>
             <label className="block text-sm font-medium text-secondary-text mb-1">Item Name</label>
             <input
@@ -128,7 +128,7 @@ export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem 
             <div className="flex flex-col gap-4">
               {/* Image Preview */}
               {(image || editingItem?.image) && (
-                <div className="relative h-32 w-full rounded-xl overflow-hidden bg-white/5 border border-white/10 group">
+                <div className="relative h-40 w-full rounded-xl overflow-hidden bg-white/5 border border-white/10 group">
                   <img 
                     src={image} 
                     alt="Preview" 
@@ -195,16 +195,18 @@ export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem 
               </div>
             </div>
           </div>
+        </form>
 
+        <div className="p-6 border-t border-white/5 bg-background/50">
           <button
-            type="submit"
+            onClick={handleSubmit}
             disabled={isSubmitting}
-            className="w-full bg-accent hover:bg-emerald-400 text-background font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 mt-4 disabled:opacity-50 shadow-lg shadow-accent/20"
+            className="w-full bg-accent hover:bg-emerald-400 text-background font-bold py-4 px-4 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-accent/20"
           >
            <Save size={18} />
            {isSubmitting ? 'Saving...' : editingItem ? 'Update Item' : 'Create Item'}
           </button>
-        </form>
+        </div>
       </div>
     </div>
   );
