@@ -11,7 +11,9 @@ import Image from 'next/image';
 
 import { useSearchParams } from 'next/navigation';
 
-export default function MenuManagementPage() {
+import { Suspense } from 'react';
+
+function MenuContent() {
   const searchParams = useSearchParams();
   const ridParam = searchParams.get('rid');
   
@@ -179,5 +181,17 @@ export default function MenuManagementPage() {
         editingItem={editingItem}
       />
     </div>
+  );
+}
+
+export default function MenuManagementPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Utensils className="animate-spin text-accent" size={48} />
+      </div>
+    }>
+      <MenuContent />
+    </Suspense>
   );
 }

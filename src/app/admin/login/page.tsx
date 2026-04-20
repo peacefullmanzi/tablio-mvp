@@ -3,8 +3,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Lock, ArrowRight, Loader2 } from 'lucide-react';
+import { Suspense } from 'react';
 
-export default function AdminLoginPage() {
+function LoginContent() {
   const searchParams = useSearchParams();
   const ridParam = searchParams.get('rid');
   
@@ -160,5 +161,17 @@ export default function AdminLoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AdminLoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="animate-spin text-accent" size={48} />
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }

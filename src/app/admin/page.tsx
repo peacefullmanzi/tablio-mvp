@@ -9,7 +9,9 @@ import { RefreshCcw, Bell, BellOff, History, Inbox, Trash2, MessageSquare } from
 
 import { useSearchParams } from 'next/navigation';
 
-export default function AdminPage() {
+import { Suspense } from 'react';
+
+function AdminContent() {
   const searchParams = useSearchParams();
   const ridParam = searchParams.get('rid');
   
@@ -253,5 +255,17 @@ export default function AdminPage() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function AdminPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <RefreshCcw className="animate-spin text-accent" size={48} />
+      </div>
+    }>
+      <AdminContent />
+    </Suspense>
   );
 }
