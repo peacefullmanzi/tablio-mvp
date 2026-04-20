@@ -60,7 +60,7 @@ export default function TrackingPage({ params }: TrackingPageProps) {
         <h1 className="text-2xl font-bold text-primary-text mb-2">Order Not Found</h1>
         <p className="text-secondary-text mb-8 max-w-xs">We couldn&apos;t find an order with this ID. It might have been cleared or the link is incorrect.</p>
         <Link 
-          href="/"
+          href={order?.restaurantId ? `/r/${order.restaurantId}` : '/'}
           className="bg-accent hover:bg-emerald-400 text-background font-black py-3 px-8 rounded-xl transition-all flex items-center gap-2"
         >
           <ArrowLeft size={18} />
@@ -75,7 +75,7 @@ export default function TrackingPage({ params }: TrackingPageProps) {
       {/* Header */}
       <header className="border-b border-white/5 py-4 sticky top-0 z-10 backdrop-blur-md bg-card/80">
         <div className="container mx-auto px-4 flex items-center justify-between">
-          <Link href="/" className="text-secondary-text hover:text-primary-text transition-colors">
+          <Link href={order?.restaurantId ? `/r/${order.restaurantId}` : '/'} className="text-secondary-text hover:text-primary-text transition-colors">
             <ArrowLeft size={24} />
           </Link>
           <h1 className="text-lg font-bold text-primary-text">Live Tracking</h1>

@@ -56,7 +56,7 @@ function MenuContent() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [ridParam]);
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this item?")) return;

@@ -94,8 +94,7 @@ function AdminContent() {
 
     const q = query(
       collection(db, 'orders'),
-      where('restaurantId', '==', restaurantId),
-      orderBy('created_at', 'desc')
+      where('restaurantId', '==', restaurantId)
     );
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -132,7 +131,7 @@ function AdminContent() {
     });
 
     return () => unsubscribe();
-  }, [refreshKey]);
+  }, [refreshKey, ridParam]);
 
   // Handle Notifications
   useEffect(() => {
