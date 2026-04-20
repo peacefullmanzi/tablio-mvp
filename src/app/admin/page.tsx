@@ -246,6 +246,16 @@ function AdminContent() {
                 {notificationsEnabled ? <Bell size={18} className="animate-bounce" /> : <BellOff size={18} />}
                 <span className="hidden sm:inline">Alerts: {notificationsEnabled ? 'ON' : 'OFF'}</span>
               </button>
+
+              {showCompleted && filteredOrders.length > 0 && (
+                <button 
+                  onClick={handleClearHistory}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl border border-red-500/20 transition-all text-sm font-bold"
+                >
+                  <Trash2 size={18} />
+                  <span className="hidden sm:inline">Clear History</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

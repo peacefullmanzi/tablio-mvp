@@ -5,7 +5,7 @@ import { validateAdminPin } from './admin-utils';
 // SECURITY MIDDLEWARE — Shared guards for all API routes
 // =============================================================================
 
-const MAX_BODY_SIZE = 1 * 1024 * 1024; // 1 MB
+const MAX_BODY_SIZE = 5 * 1024 * 1024; // 5 MB
 
 /**
  * Parses and validates the request body with a 1MB size limit.

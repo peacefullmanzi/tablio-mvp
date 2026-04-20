@@ -128,19 +128,19 @@ export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem 
             <div className="flex flex-col gap-4">
               {/* Image Preview */}
               {(image || editingItem?.image) && (
-                <div className="relative h-40 w-full rounded-xl overflow-hidden bg-white/5 border border-white/10 group">
+                <div className="relative h-48 w-full rounded-xl overflow-hidden bg-white/5 border border-white/10 group">
                   <img 
-                    src={image} 
+                    src={image || editingItem?.image || ''} 
                     alt="Preview" 
                     className="w-full h-full object-cover" 
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=Invalid+URL';
+                      (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=Invalid+Image';
                     }}
                   />
                   <button 
                     type="button"
                     onClick={() => setImage('')}
-                    className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
                   >
                     <X size={14} />
                   </button>
@@ -152,7 +152,9 @@ export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem 
                   <input
                     type="url"
                     value={image.startsWith('data:') ? '' : image}
-                    onChange={(e) => setImage(e.target.value)}
+                    onChange={(e) => {
+                      setImage(e.target.value);
+                    }}
                     placeholder="Paste Image URL..."
                     className="w-full bg-background border border-white/10 rounded-lg px-4 py-2.5 text-sm text-primary-text focus:outline-none focus:border-accent transition-colors"
                   />
@@ -164,13 +166,13 @@ export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem 
                   <div className="h-px flex-1 bg-white/5" />
                 </div>
 
-                <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-white/10 rounded-xl hover:border-accent/50 hover:bg-accent/5 transition-all cursor-pointer">
-                  <div className="flex flex-col items-center justify-center pt-2 pb-2">
-                    <Save size={20} className="text-secondary-text mb-2" />
-                    <p className="text-xs text-secondary-text">
-                      <span className="font-bold text-accent">Click to upload</span> or drag and drop
+                <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-white/10 rounded-xl hover:border-accent/50 hover:bg-accent/5 transition-all cursor-pointer bg-white/[0.02]">
+                  <div className="flex flex-col items-center justify-center pt-2 pb-2 text-center px-4">
+                    <Save size={24} className="text-accent mb-3" />
+                    <p className="text-xs text-secondary-text font-medium">
+                      <span className="font-bold text-accent">Select from computer</span>
                     </p>
-                    <p className="text-[10px] text-secondary-text/50 mt-1">MAX 1MB (JPG, PNG, WEBP)</p>
+                    <p className="text-[10px] text-secondary-text/40 mt-1 uppercase tracking-tighter">JPG, PNG, WEBP (MAX 4MB)</p>
                   </div>
                   <input 
                     type="file" 
@@ -179,13 +181,15 @@ export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem 
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) {
-                        if (file.size > 1024 * 1024) {
-                          alert("Image is too large! Please use an image smaller than 1MB.");
+                        if (file.size > 4 * 1024 * 1024) {
+                          alert("Image is too large! Please use an image smaller than 4MB.");
                           return;
                         }
                         const reader = new FileReader();
-                        reader.onloadend = () => {
-                          setImage(reader.result as string);
+                        reader.onload = (event) => {
+                          if (event.target?.result) {
+                            setImage(event.target.result as string);
+                          }
                         };
                         reader.readAsDataURL(file);
                       }
