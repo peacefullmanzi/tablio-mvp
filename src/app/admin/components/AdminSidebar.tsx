@@ -54,7 +54,7 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: AdminSideb
 
         <div className={`p-6 border-b border-white/10 flex items-center gap-3 ${isCollapsed ? 'lg:justify-center lg:px-0' : ''}`}>
           <Image src="/logo.png" alt="Tablio Logo" width={48} height={48} className="h-10 w-auto object-contain shrink-0" />
-          {(!isCollapsed || (isCollapsed && typeof window !== 'undefined' && window.innerWidth < 1024)) && (
+          {!isCollapsed && (
             <h1 className="text-xl font-black text-primary-text tracking-tight whitespace-nowrap">Tablio OS</h1>
           )}
         </div>
@@ -81,7 +81,7 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: AdminSideb
                 } ${isCollapsed ? 'lg:justify-center' : 'gap-3'}`}
               >
                 <item.icon size={20} className={`shrink-0 ${isActive ? 'text-accent' : 'opacity-70'}`} />
-                {(!isCollapsed || (isCollapsed && typeof window !== 'undefined' && window.innerWidth < 1024)) && (
+                {!isCollapsed && (
                   <span className="whitespace-nowrap">{item.label}</span>
                 )}
               </Link>
@@ -95,7 +95,7 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: AdminSideb
             className={`w-full flex items-center px-4 py-3 rounded-xl font-bold text-secondary-text hover:bg-white/5 hover:text-primary-text transition-all ${isCollapsed ? 'lg:justify-center' : 'gap-3'}`}
           >
             <Settings size={20} className="shrink-0 opacity-70" />
-            {(!isCollapsed || (isCollapsed && typeof window !== 'undefined' && window.innerWidth < 1024)) && <span>Settings</span>}
+            {!isCollapsed && <span>Settings</span>}
           </button>
           <button
             onClick={() => {
@@ -110,7 +110,7 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: AdminSideb
             className={`w-full flex items-center px-4 py-3 rounded-xl font-bold text-red-400 hover:bg-red-400/10 transition-all ${isCollapsed ? 'lg:justify-center' : 'gap-3'}`}
           >
             <LogOut size={20} className="shrink-0 opacity-70" />
-            {(!isCollapsed || (isCollapsed && typeof window !== 'undefined' && window.innerWidth < 1024)) && <span>Logout</span>}
+            {!isCollapsed && <span>Logout</span>}
           </button>
         </div>
       </aside>

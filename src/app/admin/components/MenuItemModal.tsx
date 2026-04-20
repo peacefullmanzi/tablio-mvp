@@ -122,24 +122,87 @@ export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem 
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-secondary-text mb-1">Image URL (Optional)</label>
-            <input
-              type="url"
-              value={image}
-              onChange={(e) => setImage(e.target.value)}
-              placeholder="https://..."
-              className="w-full bg-background border border-white/10 rounded-lg px-4 py-2.5 text-primary-text focus:outline-none focus:border-accent transition-colors"
-            />
+          <div className="space-y-4">
+            <label className="block text-sm font-medium text-secondary-text">Item Image</label>
+            
+            <div className="flex flex-col gap-4">
+              {/* Image Preview */}
+              {(image || editingItem?.image) && (
+                <div className="relative h-32 w-full rounded-xl overflow-hidden bg-white/5 border border-white/10 group">
+                  <img 
+                    src={image} 
+                    alt="Preview" 
+                    className="w-full h-full object-cover" 
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=Invalid+URL';
+                    }}
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => setImage('')}
+                    className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 gap-3">
+                <div className="relative">
+                  <input
+                    type="url"
+                    value={image.startsWith('data:') ? '' : image}
+                    onChange={(e) => setImage(e.target.value)}
+                    placeholder="Paste Image URL..."
+                    className="w-full bg-background border border-white/10 rounded-lg px-4 py-2.5 text-sm text-primary-text focus:outline-none focus:border-accent transition-colors"
+                  />
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="h-px flex-1 bg-white/5" />
+                  <span className="text-[10px] uppercase tracking-widest text-secondary-text/50 font-bold">OR</span>
+                  <div className="h-px flex-1 bg-white/5" />
+                </div>
+
+                <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-white/10 rounded-xl hover:border-accent/50 hover:bg-accent/5 transition-all cursor-pointer">
+                  <div className="flex flex-col items-center justify-center pt-2 pb-2">
+                    <Save size={20} className="text-secondary-text mb-2" />
+                    <p className="text-xs text-secondary-text">
+                      <span className="font-bold text-accent">Click to upload</span> or drag and drop
+                    </p>
+                    <p className="text-[10px] text-secondary-text/50 mt-1">MAX 1MB (JPG, PNG, WEBP)</p>
+                  </div>
+                  <input 
+                    type="file" 
+                    className="hidden" 
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        if (file.size > 1024 * 1024) {
+                          alert("Image is too large! Please use an image smaller than 1MB.");
+                          return;
+                        }
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setImage(reader.result as string);
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                  />
+                </label>
+              </div>
+            </div>
           </div>
 
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-accent hover:bg-emerald-400 text-background font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 mt-4 disabled:opacity-50"
+            className="w-full bg-accent hover:bg-emerald-400 text-background font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 mt-4 disabled:opacity-50 shadow-lg shadow-accent/20"
           >
            <Save size={18} />
-           {isSubmitting ? 'Saving...' : 'Save Item'}
+           {isSubmitting ? 'Saving...' : editingItem ? 'Update Item' : 'Create Item'}
           </button>
         </form>
       </div>
