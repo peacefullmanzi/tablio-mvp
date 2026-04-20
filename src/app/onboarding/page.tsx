@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Store, ShieldCheck, ArrowRight, Loader2, Copy, Check } from 'lucide-react';
+import { Store, ShieldCheck, ArrowRight, Loader2, Copy, Check, ExternalLink } from 'lucide-react';
 
 export default function OnboardingPage() {
   const [name, setName] = useState('');
