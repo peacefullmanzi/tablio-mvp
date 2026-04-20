@@ -7,14 +7,31 @@ import { Order } from '@/types/order';
 import OrderList from './components/OrderList';
 import { RefreshCcw, Bell, BellOff, History, Inbox, Trash2, MessageSquare } from 'lucide-react';
 
+import { useSearchParams } from 'next/navigation';
+
 export default function AdminPage() {
+  const searchParams = useSearchParams();
+  const ridParam = searchParams.get('rid');
+  
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const [showCompleted, setShowCompleted] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [messageCounts, setMessageCounts] = useState<Record<string, number>>({});
-  
+
+  // Unified restaurantId logic
+  const getRestaurantId = () => {
+    return ridParam || localStorage.getItem('tablio_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID;
+  };
+
+  useEffect(() => {
+    const rid = getRestaurantId();
+    if (rid && rid !== localStorage.getItem('tablio_rid')) {
+      localStorage.setItem('tablio_rid', rid);
+    }
+  }, [ridParam]);
+
   const handleMessageCountChange = useCallback((orderId: string, count: number) => {
     setMessageCounts(prev => {
       if (prev[orderId] === count) return prev;
@@ -39,7 +56,7 @@ export default function AdminPage() {
 
     try {
       const pin = localStorage.getItem('tablio_admin_auth');
-      const restaurantId = process.env.NEXT_PUBLIC_RESTAURANT_ID;
+      const restaurantId = getRestaurantId();
       if (!restaurantId) {
         alert('Configuration error: restaurantId not set.');
         return;
@@ -64,9 +81,9 @@ export default function AdminPage() {
 
   useEffect(() => {
     // Setup real-time listener for this restaurant's orders only
-    const restaurantId = process.env.NEXT_PUBLIC_RESTAURANT_ID;
+    const restaurantId = getRestaurantId();
     if (!restaurantId) {
-      console.error('[AdminPage] NEXT_PUBLIC_RESTAURANT_ID is not set. Cannot load orders.');
+      console.error('[AdminPage] No restaurantId found. Cannot load orders.');
       setIsLoading(false);
       return;
     }

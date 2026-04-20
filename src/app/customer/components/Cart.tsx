@@ -6,7 +6,11 @@ import { useStore } from '@/lib/store';
 import { ShoppingBag, X, Minus, Plus } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 
-export default function Cart() {
+interface CartProps {
+  restaurantIdOverride?: string;
+}
+
+export default function Cart({ restaurantIdOverride }: CartProps) {
   const { items, getTotal, removeFromCart, addToCart, clearCart } = useStore();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -24,11 +28,11 @@ export default function Cart() {
 
     if (items.length === 0) return;
 
-    // Enforce restaurantId — must be set in the environment
-    const restaurantId = process.env.NEXT_PUBLIC_RESTAURANT_ID;
+    // Use the override (from URL) or fallback to the environment variable
+    const restaurantId = restaurantIdOverride || process.env.NEXT_PUBLIC_RESTAURANT_ID;
     if (!restaurantId) {
-      console.error('[Cart] NEXT_PUBLIC_RESTAURANT_ID is not set. Cannot place order.');
-      alert('Configuration error. Please contact staff.');
+      console.error('[Cart] No restaurantId found.');
+      alert('Configuration error. Please scan the QR code again.');
       return;
     }
 

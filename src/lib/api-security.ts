@@ -59,14 +59,10 @@ export async function parseAndValidateBody(
   return { data: body };
 }
 
-/**
- * Validates admin PIN from request body.
- * Returns null if valid, or an error NextResponse to return immediately.
- */
 export async function requireAdminPin(
   body: Record<string, unknown>
 ): Promise<NextResponse | null> {
-  const { pin } = body;
+  const { pin, restaurantId } = body;
 
   if (!pin || typeof pin !== 'string') {
     return NextResponse.json(
@@ -75,7 +71,8 @@ export async function requireAdminPin(
     );
   }
 
-  const isValid = await validateAdminPin(pin);
+  // Pass restaurantId to the validator to support multi-tenant PINs
+  const isValid = await validateAdminPin(pin, typeof restaurantId === 'string' ? restaurantId : undefined);
   if (!isValid) {
     return NextResponse.json(
       { error: 'Unauthorized: Invalid PIN' },

@@ -1,113 +1,90 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { collection, getDocs, query, where } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { MenuItem as MenuItemType } from '@/types/menu';
-import MenuList from './customer/components/MenuList';
-import Cart from './customer/components/Cart';
-import { UtensilsCrossed, ExternalLink } from 'lucide-react';
+import { UtensilsCrossed, QrCode, Store, ChevronRight, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
-export default function Home() {
-  const [menuItems, setMenuItems] = useState<MenuItemType[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [activeOrderId, setActiveOrderId] = useState<string | null>(null);
-
-  useEffect(() => {
-    // Check for active order in local storage
-    const lastId = localStorage.getItem('last_order_id');
-    if (lastId) {
-      setTimeout(() => setActiveOrderId(lastId), 0);
-    }
-
-    const fetchMenuItems = async () => {
-      setIsLoading(true);
-      try {
-        const restaurantId = process.env.NEXT_PUBLIC_RESTAURANT_ID;
-        if (!restaurantId) {
-          console.error('[Home] NEXT_PUBLIC_RESTAURANT_ID is not set.');
-          setMenuItems([]);
-          return;
-        }
-
-        const q = query(
-          collection(db, 'menus'),
-          where('restaurantId', '==', restaurantId)
-        );
-        const querySnapshot = await getDocs(q);
-        
-        if (querySnapshot.empty) {
-          setMenuItems([]);
-        } else {
-          const items = querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          })) as MenuItemType[];
-          setMenuItems(items);
-        }
-      } catch (error) {
-        console.error("Critical: Menu fetch failed:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchMenuItems();
-  }, []);
-
+export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-background text-primary-text">
-      <header className="relative w-full h-36 sm:h-48 bg-background overflow-hidden border-b border-white/5">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-24 -right-24 w-96 h-96 bg-accent/15 blur-[100px] rounded-full" />
-          <div className="absolute inset-0 bg-linear-to-t from-background via-transparent to-transparent" />
+    <div className="min-h-screen bg-background text-primary-text flex flex-col">
+      {/* Header */}
+      <header className="p-6 flex items-center justify-between max-w-7xl mx-auto w-full">
+        <div className="flex items-center gap-3">
+          <Image src="/logo.png" alt="Tablio Logo" width={40} height={40} className="object-contain" />
+          <span className="text-2xl font-black tracking-tighter">Tablio</span>
         </div>
-        
-        <div className="absolute inset-0 flex flex-col justify-end p-4 sm:p-6 pb-4 sm:pb-6">
-          <div className="flex items-end justify-between max-w-4xl mx-auto w-full">
-            <div>
-              <div className="flex items-center gap-2 sm:gap-3 mb-1">
-                <Image src="/logo.png" alt="Tablio Logo" width={48} height={48} className="h-8 sm:h-10 w-auto object-contain" />
-                <h1 className="text-2xl sm:text-4xl font-black text-primary-text tracking-tight leading-none">Tablio Kitchen</h1>
-              </div>
-              <p className="text-secondary-text text-xs sm:text-sm font-medium ml-1">Elevated dining, ordered instantly.</p>
-            </div>
-            
-            {activeOrderId && (
-              <Link 
-                href={`/customer/track/${activeOrderId}`}
-                className="flex items-center gap-2 px-4 py-3 bg-white/10 backdrop-blur-md border border-white/20 text-primary-text rounded-2xl text-sm font-bold shadow-xl active:scale-95 transition-all"
-              >
-                <ExternalLink size={16} />
-                <span className="hidden sm:inline">Track Order</span>
-              </Link>
-            )}
-          </div>
-        </div>
+        <Link 
+          href="/admin" 
+          className="text-sm font-bold text-secondary-text hover:text-accent transition-colors"
+        >
+          Restaurant Login
+        </Link>
       </header>
 
-      <main className="w-full mx-auto pb-8">
-        {isLoading ? (
-          <div className="flex flex-col justify-center items-center h-64 gap-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
-            <p className="text-secondary-text animate-pulse">Loading menu...</p>
+      {/* Hero Section */}
+      <main className="flex-1 flex flex-col items-center justify-center p-6 text-center max-w-4xl mx-auto space-y-12 pb-24">
+        <div className="relative">
+          <div className="absolute -inset-4 bg-accent/20 blur-3xl rounded-full animate-pulse" />
+          <div className="relative bg-white/5 border border-white/10 p-4 rounded-3xl rotate-3">
+            <UtensilsCrossed size={64} className="text-accent" />
           </div>
-        ) : menuItems.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-center">
-            <div className="bg-white/5 p-6 rounded-full mb-4">
-              <UtensilsCrossed size={48} className="text-secondary-text/20" />
+        </div>
+
+        <div className="space-y-6">
+          <h1 className="text-5xl sm:text-7xl font-black tracking-tight leading-[0.9]">
+            The Future of <span className="text-accent">Dining</span> is Here.
+          </h1>
+          <p className="text-lg sm:text-xl text-secondary-text max-w-2xl font-medium">
+            Scan. Order. Enjoy. Tablio brings the modern digital experience to your favorite restaurants.
+          </p>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
+          <Link 
+            href="/onboarding"
+            className="flex-1 bg-accent text-background font-black py-5 rounded-2xl flex items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-xl shadow-accent/20"
+          >
+            GET STARTED <ChevronRight size={20} />
+          </Link>
+          <button className="flex-1 bg-white/5 border border-white/10 text-primary-text font-black py-5 rounded-2xl flex items-center justify-center gap-2 hover:bg-white/10 transition-all">
+            LEARN MORE
+          </button>
+        </div>
+
+        {/* Feature Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-12 w-full">
+          <div className="bg-card border border-white/5 p-8 rounded-3xl space-y-4 text-left">
+            <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center">
+              <QrCode size={24} className="text-blue-500" />
             </div>
-            <h2 className="text-xl font-bold text-primary-text">Menu not available</h2>
-            <p className="text-secondary-text mt-2">Check back later for our latest offerings.</p>
+            <h3 className="font-black text-xl">Scan to Order</h3>
+            <p className="text-secondary-text text-sm leading-relaxed">No more waiting for menus. Just scan the QR code and start choosing.</p>
           </div>
-        ) : (
-          <MenuList items={menuItems} />
-        )}
+
+          <div className="bg-card border border-white/5 p-8 rounded-3xl space-y-4 text-left">
+            <div className="w-12 h-12 bg-purple-500/10 rounded-2xl flex items-center justify-center">
+              <Sparkles size={24} className="text-purple-500" />
+            </div>
+            <h3 className="font-black text-xl">Real-time Tracking</h3>
+            <p className="text-secondary-text text-sm leading-relaxed">Watch your order move from the kitchen to your table in real-time.</p>
+          </div>
+
+          <div className="bg-card border border-white/5 p-8 rounded-3xl space-y-4 text-left">
+            <div className="w-12 h-12 bg-accent/10 rounded-2xl flex items-center justify-center">
+              <Store size={24} className="text-accent" />
+            </div>
+            <h3 className="font-black text-xl">Cloud Kitchen</h3>
+            <p className="text-secondary-text text-sm leading-relaxed">Simple admin tools to manage your menu and orders from any device.</p>
+          </div>
+        </div>
       </main>
 
-      <Cart />
+      {/* Footer */}
+      <footer className="p-12 text-center border-t border-white/5">
+        <p className="text-secondary-text text-xs font-black uppercase tracking-widest">
+          Please scan a restaurant QR code to view their menu.
+        </p>
+      </footer>
     </div>
   );
 }

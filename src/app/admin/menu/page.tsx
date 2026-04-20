@@ -9,16 +9,33 @@ import { Utensils, Plus, Edit2, Trash2 } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 import Image from 'next/image';
 
+import { useSearchParams } from 'next/navigation';
+
 export default function MenuManagementPage() {
+  const searchParams = useSearchParams();
+  const ridParam = searchParams.get('rid');
+  
   const [items, setItems] = useState<MenuItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
 
+  // Unified restaurantId logic
+  const getRestaurantId = () => {
+    return ridParam || localStorage.getItem('tablio_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID;
+  };
+
   useEffect(() => {
-    const restaurantId = process.env.NEXT_PUBLIC_RESTAURANT_ID;
+    const rid = getRestaurantId();
+    if (rid && rid !== localStorage.getItem('tablio_rid')) {
+      localStorage.setItem('tablio_rid', rid);
+    }
+  }, [ridParam]);
+
+  useEffect(() => {
+    const restaurantId = getRestaurantId();
     if (!restaurantId) {
-      console.error('[MenuManagement] NEXT_PUBLIC_RESTAURANT_ID is not set.');
+      console.error('[MenuManagement] No restaurantId found.');
       setIsLoading(false);
       return;
     }
@@ -41,7 +58,7 @@ export default function MenuManagementPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this item?")) return;
-    const restaurantId = process.env.NEXT_PUBLIC_RESTAURANT_ID;
+    const restaurantId = getRestaurantId();
     if (!restaurantId) {
       alert('Configuration error: restaurantId not set.');
       return;

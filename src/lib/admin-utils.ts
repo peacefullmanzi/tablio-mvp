@@ -3,20 +3,29 @@ import bcrypt from 'bcryptjs';
 
 /**
  * Validates the admin PIN against the stored value.
- * Supports both hashed and plain text (for migration).
+ * Supports multi-tenant restaurant PINs and global fallback.
  */
-export async function validateAdminPin(pin: string): Promise<boolean> {
+export async function validateAdminPin(pin: string, restaurantId?: string): Promise<boolean> {
   if (!pin) return false;
 
   let storedPin = process.env.NEXT_PUBLIC_ADMIN_PIN || "123456";
   
   try {
-    const configDoc = await adminDb.collection('settings').doc('config').get();
-    if (configDoc.exists && configDoc.data()?.adminPin) {
-      storedPin = configDoc.data()?.adminPin;
+    // 1. Try to fetch from the specific restaurant record first
+    if (restaurantId) {
+      const rDoc = await adminDb.collection('restaurants').doc(restaurantId).get();
+      if (rDoc.exists && rDoc.data()?.adminPinHash) {
+        storedPin = rDoc.data()?.adminPinHash;
+      }
+    } else {
+      // 2. Global fallback (for legacy or setup)
+      const configDoc = await adminDb.collection('settings').doc('config').get();
+      if (configDoc.exists && configDoc.data()?.adminPin) {
+        storedPin = configDoc.data()?.adminPin;
+      }
     }
   } catch (err) {
-    console.warn('[validateAdminPin] Failed to fetch PIN from Firestore, using fallback:', err);
+    console.warn('[validateAdminPin] Failed to fetch PIN, using fallback:', err);
   }
 
   // Check if stored PIN is hashed (bcrypt hashes start with $2a$ or $2b$)
