@@ -5,4 +5,5 @@ export interface MenuItem {
   price: number;
   category: string;
   image?: string;
+  description?: string;
 }

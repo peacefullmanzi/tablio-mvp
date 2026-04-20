@@ -5,8 +5,9 @@ import { collection, query, onSnapshot, orderBy, where, limit } from 'firebase/f
 import { db } from '@/lib/firebase';
 import { Order } from '@/types/order';
 import OrderList from './components/OrderList';
-import { RefreshCcw, Bell, BellOff, History, Inbox, Trash2, MessageSquare } from 'lucide-react';
+import { RefreshCcw, Bell, BellOff, History, Inbox, Trash2, MessageSquare, Search } from 'lucide-react';
 import { OrderCardSkeleton } from './components/Skeleton';
+import AdminSidebar from './components/AdminSidebar';
 
 import { useSearchParams } from 'next/navigation';
 
@@ -22,6 +23,9 @@ function AdminContent() {
   const [showCompleted, setShowCompleted] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [messageCounts, setMessageCounts] = useState<Record<string, number>>({});
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState('All');
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   // Unified restaurantId logic
   const getRestaurantId = () => {
@@ -151,115 +155,100 @@ function AdminContent() {
     prevOrderCount.current = activeOrders.length;
   }, [orders, isLoading, notificationsEnabled]);
 
-  const filteredOrders = orders.filter(order => 
-    showCompleted ? order.status === 'completed' : order.status !== 'completed'
-  );
+  const filteredOrders = orders.filter(order => {
+    const matchesStatus = showCompleted ? order.status === 'completed' : order.status !== 'completed';
+    const matchesSearch = searchQuery === '' || 
+      order.table_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.items.some(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    return matchesStatus && matchesSearch;
+  });
 
   return (
-    <div className="min-h-screen bg-background pb-12">
-      <header className={`bg-background/80 backdrop-blur-xl border-b border-white/10 py-6 sticky top-0 z-10`}>
-        <div className="container mx-auto px-8">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-black text-primary-text tracking-tight">Active Orders</h1>
-            <div className="flex gap-4 items-center">
-              {activeChatRooms > 0 && (
-                <div className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 font-bold text-sm cursor-default animate-pulse shadow-[0_0_15px_rgba(59,130,246,0.2)]">
-                  <MessageSquare size={16} />
-                  <span className="hidden sm:inline">{activeChatRooms} Active {activeChatRooms === 1 ? 'Chat' : 'Chats'}</span>
-                  <span className="sm:hidden">{activeChatRooms}</span>
+    <div className="h-screen bg-background flex overflow-hidden">
+      <AdminSidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+      
+      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isCollapsed ? 'pl-20' : 'pl-64'}`}>
+        {/* Sticky Header */}
+        <header className="bg-background/80 backdrop-blur-xl border-b border-white/5 pt-8 pb-6 sticky top-0 z-10">
+          <div className="container mx-auto px-6">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              <div>
+                <h1 className="text-3xl font-black text-primary-text tracking-tight flex items-center gap-3">
+                  {showCompleted ? 'Order History' : 'Active Orders'}
+                  <span className="bg-accent/10 text-accent text-xs px-3 py-1 rounded-full border border-accent/20">
+                    {filteredOrders.length}
+                  </span>
+                </h1>
+                <p className="text-secondary-text text-sm font-medium mt-1">Manage and track live table orders</p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                {/* Search Bar */}
+                <div className="relative flex-1 min-w-[240px]">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text" size={18} />
+                  <input 
+                    type="text" 
+                    placeholder="Search Table or Item..." 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:border-accent outline-none transition-all"
+                  />
                 </div>
-              )}
-              <button 
-                onClick={handleRefresh}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-secondary-text transition-colors font-bold text-sm"
-              >
-                <RefreshCcw size={16} className={isLoading ? 'animate-spin' : ''} />
-                Refresh
-              </button>
-            </div>
-          </div>
 
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div className="flex gap-2">
-              <button
-                onClick={() => setShowCompleted(false)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  !showCompleted 
-                    ? 'bg-accent text-background shadow-lg shadow-accent/10' 
-                    : 'bg-white/5 text-secondary-text hover:bg-white/10'
-                }`}
-              >
-                <Inbox size={16} /> Active Orders
-                <span className={`ml-1 px-1.5 py-0.5 rounded-md text-[10px] ${!showCompleted ? 'bg-background/20' : 'bg-white/10'}`}>
-                  {orders.filter(o => o.status !== 'completed').length}
-                </span>
-              </button>
-              <button
-                onClick={() => setShowCompleted(true)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  showCompleted 
-                    ? 'bg-accent text-background shadow-lg shadow-accent/10' 
-                    : 'bg-white/5 text-secondary-text hover:bg-white/10'
-                }`}
-              >
-                <History size={16} /> History
-                <span className={`ml-1 px-1.5 py-0.5 rounded-md text-[10px] ${showCompleted ? 'bg-background/20' : 'bg-white/10'}`}>
-                  {orders.filter(o => o.status === 'completed').length}
-                </span>
-              </button>
-            </div>
-
-            <div className="flex items-center gap-6 w-full sm:w-auto">
-              {showCompleted && orders.filter(o => o.status === 'completed').length > 0 && (
-                <button
-                  onClick={handleClearHistory}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold text-red-500 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 transition-colors"
+                <button 
+                  onClick={() => setShowCompleted(!showCompleted)}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                    showCompleted 
+                      ? 'bg-accent text-background shadow-lg shadow-accent/20' 
+                      : 'bg-white/5 text-secondary-text border border-white/10 hover:bg-white/10'
+                  }`}
                 >
-                  <Trash2 size={14} /> Clear History
+                  <History size={18} />
+                  {showCompleted ? 'Active' : 'History'}
                 </button>
-              )}
 
-              <button
-                onClick={() => setNotificationsEnabled(!notificationsEnabled)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
-                  notificationsEnabled ? 'text-accent bg-accent/10 border border-accent/20' : 'text-secondary-text bg-white/5 border border-white/10'
-                }`}
-              >
-                {notificationsEnabled ? <Bell size={14} className="animate-bounce" /> : <BellOff size={14} />}
-                KITCHEN BELL: {notificationsEnabled ? 'ON' : 'OFF'}
-              </button>
-              
-              <div className="hidden lg:flex gap-4 text-xs font-medium border-l border-white/10 pl-6">
-                <div className="flex items-center gap-1.5 text-yellow-500">
-                  <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
-                  {orders.filter(o => o.status === 'pending').length} New
-                </div>
-                <div className="flex items-center gap-1.5 text-orange-500">
-                  <div className="w-2 h-2 rounded-full bg-orange-500" />
-                  {orders.filter(o => o.status === 'preparing').length} Kitchen
-                </div>
+                <button 
+                  onClick={handleRefresh}
+                  className="p-3 bg-white/5 hover:bg-white/10 text-secondary-text rounded-xl border border-white/10 transition-all"
+                >
+                  <RefreshCcw size={18} className={isLoading ? 'animate-spin' : ''} />
+                </button>
+
+                <button 
+                  onClick={() => setNotificationsEnabled(!notificationsEnabled)}
+                  className={`p-3 rounded-xl border transition-all ${
+                    notificationsEnabled ? 'text-accent bg-accent/10 border-accent/20' : 'text-secondary-text bg-white/5 border-white/10'
+                  }`}
+                >
+                  {notificationsEnabled ? <Bell size={18} className="animate-bounce" /> : <BellOff size={18} />}
+                </button>
               </div>
             </div>
           </div>
-        </div>
-        <audio ref={audioRef} src="https://assets.mixkit.co/active_storage/sfx/2857/2857-preview.mp3" preload="auto" />
-      </header>
+        </header>
 
-      <main className="container mx-auto px-4">
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {[...Array(8)].map((_, i) => (
-              <OrderCardSkeleton key={i} />
-            ))}
+        {/* Scrollable Content Area */}
+        <main className="flex-1 overflow-y-auto p-6 pb-24">
+          <div className="container mx-auto">
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {[...Array(8)].map((_, i) => (
+                  <OrderCardSkeleton key={i} />
+                ))}
+              </div>
+            ) : filteredOrders.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-64 text-secondary-text bg-card rounded-2xl border border-white/5">
+                <p className="text-lg">{showCompleted ? 'No history found' : 'No active orders'}</p>
+              </div>
+            ) : (
+              <OrderList orders={filteredOrders} onMessageCountChange={handleMessageCountChange} />
+            )}
           </div>
-        ) : filteredOrders.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-secondary-text bg-card rounded-2xl border border-white/5">
-            <p className="text-lg">{showCompleted ? 'No history found' : 'No active orders'}</p>
-          </div>
-        ) : (
-          <OrderList orders={filteredOrders} onMessageCountChange={handleMessageCountChange} />
-        )}
-      </main>
+        </main>
+
+        <audio ref={audioRef} src="https://assets.mixkit.co/active_storage/sfx/2857/2857-preview.mp3" preload="auto" />
+      </div>
     </div>
   );
 }

@@ -98,7 +98,7 @@ export default function RestaurantMenuPage({ params }: { params: Promise<{ resta
 
   return (
     <div className="min-h-screen bg-background text-primary-text">
-      <header className="relative w-full h-36 sm:h-48 bg-background overflow-hidden border-b border-white/5">
+      <header className="relative w-full h-12 sm:h-16 bg-background overflow-hidden border-b border-white/5">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-24 -right-24 w-96 h-96 bg-accent/15 blur-[100px] rounded-full" />
           <div className="absolute inset-0 bg-linear-to-t from-background via-transparent to-transparent" />
