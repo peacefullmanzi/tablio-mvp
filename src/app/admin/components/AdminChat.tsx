@@ -58,14 +58,34 @@ export default function AdminChat({ orderId, tableNumber, isOpen, onClose, order
 
     setIsSending(true);
     try {
-      await addDoc(collection(db, 'orders', orderId, 'messages'), {
-        text: inputText,
-        sender: 'admin',
-        timestamp: serverTimestamp()
+      const getRestaurantId = () => {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('rid') || localStorage.getItem('tablio_rid') || '';
+      };
+      
+      const restaurantId = getRestaurantId();
+      const authKey = `tablio_admin_auth_${restaurantId}`;
+      const pin = localStorage.getItem(authKey) || localStorage.getItem('tablio_admin_auth');
+
+      const response = await fetch('/api/admin/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId,
+          text: inputText,
+          restaurantId,
+          pin
+        })
       });
+
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+
       setInputText('');
     } catch (error) {
       console.error("Failed to send message:", error);
+      alert("Failed to send message. Please try again.");
     } finally {
       setIsSending(false);
     }

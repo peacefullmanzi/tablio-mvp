@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Utensils, Settings, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, Utensils, Settings, LogOut, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
 import Image from 'next/image';
 import { useState } from 'react';
 import SettingsModal from './SettingsModal';
@@ -28,6 +28,7 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: AdminSideb
   const navItems = [
     { label: 'Dashboard', icon: LayoutDashboard, href: `/admin?rid=${restaurantId}` },
     { label: 'Menu Manager', icon: Utensils, href: `/admin/menu?rid=${restaurantId}` },
+    { label: 'Live Menu', icon: ExternalLink, href: `/r/${restaurantId}`, isExternal: true },
   ];
 
   return (
@@ -55,6 +56,8 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: AdminSideb
               <Link
                 key={item.href}
                 href={item.href}
+                target={item.isExternal ? "_blank" : undefined}
+                rel={item.isExternal ? "noopener noreferrer" : undefined}
                 title={isCollapsed ? item.label : undefined}
                 className={`flex items-center px-4 py-3 rounded-xl font-bold transition-all ${
                   isActive
