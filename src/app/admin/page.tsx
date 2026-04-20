@@ -165,22 +165,22 @@ function AdminContent() {
   });
 
   return (
-    <div className="h-screen bg-background flex overflow-hidden">
+    <div className="h-screen bg-background flex overflow-hidden w-full max-w-full">
       <AdminSidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
       
-      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isCollapsed ? 'pl-20' : 'pl-64'}`}>
+      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 w-full ${isCollapsed ? 'lg:pl-20' : 'lg:pl-64'}`}>
         {/* Sticky Header */}
-        <header className="bg-background/80 backdrop-blur-xl border-b border-white/5 pt-8 pb-6 sticky top-0 z-10">
-          <div className="container mx-auto px-6">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-              <div>
-                <h1 className="text-3xl font-black text-primary-text tracking-tight flex items-center gap-3">
+        <header className="bg-background/80 backdrop-blur-xl border-b border-white/5 pt-6 pb-4 lg:pt-8 lg:pb-6 sticky top-0 z-10 w-full">
+          <div className="container mx-auto px-4 lg:px-6">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 lg:gap-6 mb-2 lg:mb-6">
+              <div className="px-1 lg:px-0">
+                <h1 className="text-xl lg:text-3xl font-black text-primary-text tracking-tight flex items-center gap-3">
                   {showCompleted ? 'Order History' : 'Active Orders'}
                   <span className="bg-accent/10 text-accent text-xs px-3 py-1 rounded-full border border-accent/20">
                     {filteredOrders.length}
                   </span>
                 </h1>
-                <p className="text-secondary-text text-sm font-medium mt-1">Manage and track live table orders</p>
+                <p className="text-secondary-text text-sm font-medium mt-1 hidden lg:block">Manage and track live table orders</p>
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
