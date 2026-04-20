@@ -46,6 +46,36 @@ export default function OnboardingPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const inviteCode = searchParams?.get('code');
+  const IS_INVITE_ONLY = true;
+  const SECRET_CODE = 'tablio_admin'; // Change this as needed
+
+  if (IS_INVITE_ONLY && inviteCode !== SECRET_CODE) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <div className="w-full max-w-md bg-card border border-white/10 rounded-3xl p-10 text-center space-y-6 shadow-2xl">
+          <div className="w-20 h-20 bg-accent/10 rounded-full flex items-center justify-center mx-auto">
+            <ShieldCheck size={40} className="text-accent" />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-3xl font-black text-primary-text tracking-tight">Invite Only</h1>
+            <p className="text-secondary-text text-sm leading-relaxed">
+              Tablio onboarding is currently restricted to invited restaurants only. 
+              Please contact the administrator to get your setup code.
+            </p>
+          </div>
+          <button 
+            onClick={() => router.push('/')}
+            className="w-full bg-white/5 hover:bg-white/10 text-secondary-text font-bold py-4 rounded-xl transition-all"
+          >
+            Back to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (createdId) {
     const restaurantUrl = `${window.location.origin}/r/${createdId}`;
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(restaurantUrl)}`;

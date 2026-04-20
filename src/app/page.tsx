@@ -41,10 +41,10 @@ export default function LandingPage() {
 
         <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
           <Link 
-            href="/onboarding"
+            href="/admin"
             className="flex-1 bg-accent text-background font-black py-5 rounded-2xl flex items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-xl shadow-accent/20"
           >
-            GET STARTED <ChevronRight size={20} />
+            ADMIN LOGIN <ChevronRight size={20} />
           </Link>
           <button className="flex-1 bg-white/5 border border-white/10 text-primary-text font-black py-5 rounded-2xl flex items-center justify-center gap-2 hover:bg-white/10 transition-all">
             LEARN MORE

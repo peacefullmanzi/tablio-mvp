@@ -37,7 +37,7 @@ export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem 
     try {
       const authKey = `tablio_admin_auth_${restaurantId}`;
       const pin = localStorage.getItem(authKey) || localStorage.getItem('tablio_admin_auth');
-      
+
       const itemData = {
         name,
         price: parseFloat(price),
@@ -72,7 +72,7 @@ export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem 
   return (
     <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
-      
+
       <div className="relative w-full max-w-md bg-card border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
         <div className="p-6 border-b border-white/5 flex items-center justify-between">
           <h2 className="text-xl font-bold text-primary-text">
@@ -124,20 +124,20 @@ export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem 
 
           <div className="space-y-4">
             <label className="block text-sm font-medium text-secondary-text">Item Image</label>
-            
+
             <div className="flex flex-col gap-4">
               {/* Image Preview */}
               {(image || editingItem?.image) && (
                 <div className="relative h-48 w-full rounded-xl overflow-hidden bg-white/5 border border-white/10 group">
-                  <img 
-                    src={image || editingItem?.image || ''} 
-                    alt="Preview" 
-                    className="w-full h-full object-cover" 
+                  <img
+                    src={image || editingItem?.image || ''}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=Invalid+Image';
                     }}
                   />
-                  <button 
+                  <button
                     type="button"
                     onClick={() => setImage('')}
                     className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
@@ -166,7 +166,7 @@ export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem 
                   <div className="h-px flex-1 bg-white/5" />
                 </div>
 
-                <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-white/10 rounded-xl hover:border-accent/50 hover:bg-accent/5 transition-all cursor-pointer bg-white/[0.02]">
+                <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-white/10 rounded-xl hover:border-accent/50 hover:bg-accent/5 transition-all cursor-pointer bg-white/2">
                   <div className="flex flex-col items-center justify-center pt-2 pb-2 text-center px-4">
                     <Save size={24} className="text-accent mb-3" />
                     <p className="text-xs text-secondary-text font-medium">
@@ -174,9 +174,9 @@ export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem 
                     </p>
                     <p className="text-[10px] text-secondary-text/40 mt-1 uppercase tracking-tighter">JPG, PNG, WEBP (MAX 4MB)</p>
                   </div>
-                  <input 
-                    type="file" 
-                    className="hidden" 
+                  <input
+                    type="file"
+                    className="hidden"
                     accept="image/*"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
@@ -207,8 +207,8 @@ export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem 
             disabled={isSubmitting}
             className="w-full bg-accent hover:bg-emerald-400 text-background font-bold py-4 px-4 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-accent/20"
           >
-           <Save size={18} />
-           {isSubmitting ? 'Saving...' : editingItem ? 'Update Item' : 'Create Item'}
+            <Save size={18} />
+            {isSubmitting ? 'Saving...' : editingItem ? 'Update Item' : 'Create Item'}
           </button>
         </div>
       </div>
