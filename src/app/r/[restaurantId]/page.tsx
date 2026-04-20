@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, use } from 'react';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { MenuItem as MenuItemType } from '@/types/menu';
 import MenuList from '../../customer/components/MenuList';
@@ -33,17 +33,17 @@ export default function RestaurantMenuPage({ params }: { params: Promise<{ resta
       setIsLoading(true);
       setError(null);
       try {
-        // 1. Fetch Restaurant Info to verify it exists
-        const rSnap = await getDocs(query(collection(db, 'restaurants'), where('__name__', '==', restaurantId)));
+        // 1. Fetch Restaurant Info directly by ID
+        const rDocRef = doc(db, 'restaurants', restaurantId);
+        const rDoc = await getDoc(rDocRef);
         
-        if (rSnap.empty) {
-          // Fallback check if the ID is just a string and not the doc ID (unlikely but safe)
+        if (!rDoc.exists()) {
           setError("Restaurant not found. Please check the link or scan the QR code again.");
           setIsLoading(false);
           return;
         }
 
-        const rData = rSnap.docs[0].data();
+        const rData = rDoc.data();
         setRestaurant({ name: rData.name });
 
         // 2. Fetch Menu Items for this specific restaurant
