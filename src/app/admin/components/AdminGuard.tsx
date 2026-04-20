@@ -1,15 +1,20 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import AdminSidebar from './AdminSidebar';
 
 export default function AdminGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const ridParam = searchParams.get('rid');
+
   const [authorized, setAuthorized] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  const getRestaurantId = () => ridParam || localStorage.getItem('tablio_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID;
 
   useEffect(() => {
     setTimeout(() => setHasMounted(true), 0);
@@ -22,9 +27,10 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
 
     const verifyAccess = async () => {
       const auth = localStorage.getItem('tablio_admin_auth');
+      const restaurantId = getRestaurantId();
       
-      if (!auth) {
-        router.push('/admin/login');
+      if (!auth || !restaurantId) {
+        router.push(`/admin/login${restaurantId ? `?rid=${restaurantId}` : ''}`);
         setAuthorized(false);
         return;
       }
@@ -33,7 +39,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
         const response = await fetch('/api/admin/auth/verify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ pin: auth })
+          body: JSON.stringify({ pin: auth, restaurantId })
         });
 
         if (response.ok) {

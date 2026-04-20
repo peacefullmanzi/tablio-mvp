@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     }
 
     // 3. Validate PIN
-    const isValid = await validateAdminPin(pin);
+    const isValid = await validateAdminPin(pin, restaurantId);
 
     if (isValid) {
       // Clear failed attempts on success

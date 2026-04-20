@@ -1,14 +1,19 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Lock, ArrowRight, Loader2 } from 'lucide-react';
 
 export default function AdminLoginPage() {
+  const searchParams = useSearchParams();
+  const ridParam = searchParams.get('rid');
+  
   const [pin, setPin] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
+
+  const getRestaurantId = () => ridParam || localStorage.getItem('tablio_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID;
 
   useEffect(() => {
     // If already authenticated, verify and redirect
@@ -37,10 +42,17 @@ export default function AdminLoginPage() {
     setError(null);
     
     try {
+      const restaurantId = getRestaurantId();
+      if (!restaurantId) {
+        setError('No restaurant ID found. Please scan the QR code again.');
+        setIsSubmitting(false);
+        return;
+      }
+
       const response = await fetch('/api/admin/auth/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pin })
+        body: JSON.stringify({ pin, restaurantId })
       });
 
       const data = await response.json();
