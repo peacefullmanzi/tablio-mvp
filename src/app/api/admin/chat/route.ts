@@ -50,6 +50,7 @@ export async function POST(request: Request) {
       await adminDb.collection('messages').add({
         restaurantId,
         tableNumber,
+        roomId: `${restaurantId}_${tableNumber}`,
         message: text,
         sender: 'admin',
         createdAt: FieldValue.serverTimestamp()

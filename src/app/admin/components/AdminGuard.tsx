@@ -52,10 +52,12 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
 
       try {
         const response = await adminFetch('/api/admin/auth/session');
+        const data = await response.json();
 
-        if (response.ok) {
+        if (response.ok && data.restaurantId === restaurantId) {
           setAuthorized(true);
         } else {
+          console.warn(`[AdminGuard] Session mismatch or invalid. Expected: ${restaurantId}, Got: ${data.restaurantId}`);
           localStorage.removeItem('tablio_token');
           router.push(`/admin/login?rid=${restaurantId}`);
           setAuthorized(false);

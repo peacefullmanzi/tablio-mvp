@@ -12,17 +12,35 @@ function LoginContent() {
   const [pin, setPin] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [restaurantName, setRestaurantName] = useState<string | null>(null);
   const router = useRouter();
 
   const getRestaurantId = () => ridParam || localStorage.getItem('tablio_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID;
 
   useEffect(() => {
-    // If already authenticated for THIS restaurant, verify and redirect
-    const restaurantId = getRestaurantId();
-    const token = localStorage.getItem('tablio_token');
+    const restaurantId = ridParam || localStorage.getItem('tablio_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID;
     
+    // Sync the RID to local storage if it's in the URL
+    if (ridParam && ridParam !== localStorage.getItem('tablio_rid')) {
+      console.log(`[Login] Switching restaurant context to: ${ridParam}`);
+      localStorage.setItem('tablio_rid', ridParam);
+      // If we switch restaurants, we MUST clear the old token to avoid collisions
+      localStorage.removeItem('tablio_token');
+    }
+
+    const token = localStorage.getItem('tablio_token');
     if (token && restaurantId) {
       router.push(`/admin?rid=${restaurantId}`);
+    }
+
+    // Fetch restaurant name for display
+    if (restaurantId) {
+      fetch(`/api/public/restaurant/${restaurantId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.name) setRestaurantName(data.name);
+        })
+        .catch(err => console.error("Failed to fetch restaurant name", err));
     }
   }, [router, ridParam]);
 
@@ -91,8 +109,12 @@ function LoginContent() {
           <Lock className="text-accent" size={36} />
         </div>
 
-        <h1 className="text-3xl font-black text-primary-text mb-3 tracking-tight">Staff Access</h1>
-        <p className="text-secondary-text mb-12 text-center text-sm font-medium">Type your security PIN to continue</p>
+        <h1 className="text-3xl font-black text-primary-text mb-1 tracking-tight text-center">
+          {restaurantName || 'Staff Access'}
+        </h1>
+        <p className="text-secondary-text mb-12 text-center text-xs font-bold uppercase tracking-widest opacity-60">
+          {restaurantName ? 'Security Verification' : 'Type your PIN to continue'}
+        </p>
 
         {/* Hidden Input for Keyboard Access */}
         <form onSubmit={handleSubmit} className="relative w-full flex flex-col items-center">

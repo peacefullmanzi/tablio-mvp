@@ -35,8 +35,7 @@ function ChatContent() {
 
     const q = query(
       collection(db, 'messages'),
-      where('restaurantId', '==', restaurantId),
-      orderBy('createdAt', 'asc')
+      where('restaurantId', '==', restaurantId)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -44,6 +43,14 @@ function ChatContent() {
         id: doc.id,
         ...doc.data()
       })) as Message[];
+
+      // Sort client-side to avoid index requirements
+      msgs.sort((a, b) => {
+        const timeA = (a.createdAt as any)?.seconds || 0;
+        const timeB = (b.createdAt as any)?.seconds || 0;
+        return timeA - timeB;
+      });
+
       setMessages(msgs);
       setIsLoading(false);
     });
