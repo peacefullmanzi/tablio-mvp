@@ -3,6 +3,7 @@ import { adminDb } from '@/lib/firebase-admin';
 import { validateAdminPin } from '@/lib/admin-utils';
 import { headers } from 'next/headers';
 import { parseAndValidateBody, requireRestaurantId } from '@/lib/api-security';
+import jwt from 'jsonwebtoken';
 
 // In-memory rate limiting (IP-based)
 const RATE_LIMIT_MAP = new Map<string, { count: number; resetTime: number }>();
@@ -57,7 +58,18 @@ export async function POST(request: Request) {
     if (isValid) {
       // Clear failed attempts on success
       await adminDb.collection('settings').doc(`lockout_${restaurantId}`).delete();
-      return NextResponse.json({ success: true });
+
+      // Generate JWT Token
+      const token = jwt.sign(
+        { restaurantId },
+        process.env.JWT_SECRET || 'fallback-secret',
+        { expiresIn: '7d' }
+      );
+
+      return NextResponse.json({ 
+        success: true,
+        token 
+      });
     } else {
       // 4. Track failed attempts
       const currentLockout = lockoutDoc.data() || { failedAttempts: 0 };

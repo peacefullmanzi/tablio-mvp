@@ -10,6 +10,8 @@ import { OrderCardSkeleton } from './components/Skeleton';
 import { useSidebar } from './components/AdminGuard';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { adminFetch } from '@/lib/api-client';
 
 function AdminContent() {
   const searchParams = useSearchParams();
@@ -47,13 +49,9 @@ function AdminContent() {
 
     try {
       if (!restaurantId) return;
-      const authKey = `tablio_admin_auth_${restaurantId}`;
-      const pin = localStorage.getItem(authKey) || localStorage.getItem('tablio_admin_auth');
-
-      const response = await fetch('/api/admin/orders/clear-history', {
+      const response = await adminFetch('/api/admin/orders/clear-history', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pin, restaurantId })
+        body: JSON.stringify({ restaurantId })
       });
 
       if (!response.ok) throw new Error('Failed to clear history');
@@ -67,7 +65,8 @@ function AdminContent() {
   // Sync restaurantId from URL or Storage
   useEffect(() => {
     const rid = ridParam || localStorage.getItem('tablio_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID;
-    if (rid) {
+    if (rid && rid !== restaurantId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setRestaurantId(rid);
       if (rid !== localStorage.getItem('tablio_rid')) {
         localStorage.setItem('tablio_rid', rid);
@@ -82,6 +81,7 @@ function AdminContent() {
     }
 
     console.log(`[AdminPage] Starting real-time listener for: ${restaurantId}`);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(true);
 
     const q = query(
@@ -167,19 +167,25 @@ function AdminContent() {
           {/* Top Row: Title & Search */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-6">
             <div className="flex items-center gap-4">
-              <button 
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => setIsCollapsed(!isCollapsed)}
                 className="p-2 -ml-2 lg:hidden text-primary-text hover:bg-white/5 rounded-lg"
               >
                 <Menu size={24} />
-              </button>
+              </motion.button>
               <div>
-                <h1 className="text-2xl lg:text-3xl font-black text-primary-text tracking-tight flex items-center gap-3">
+                <motion.h1 
+                  initial={{ x: -10, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  className="text-2xl lg:text-3xl font-black text-primary-text tracking-tight flex items-center gap-3"
+                >
                   Admin Control Center
                   <span className="bg-accent/10 text-accent text-xs px-3 py-1 rounded-full border border-accent/20">
                     {filteredOrders.length}
                   </span>
-                </h1>
+                </motion.h1>
                 <div className="flex items-center gap-2 mt-1">
                   <p className="text-secondary-text text-sm font-medium hidden lg:block">Real-time table order management</p>
                   <span className="text-[10px] text-secondary-text/30 font-mono uppercase tracking-widest bg-white/5 px-2 py-0.5 rounded">
@@ -189,7 +195,11 @@ function AdminContent() {
               </div>
             </div>
 
-            <div className="relative flex-1 max-w-md">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="relative flex-1 max-w-md"
+            >
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text" size={18} />
               <input 
                 type="text" 
@@ -198,13 +208,15 @@ function AdminContent() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:border-accent outline-none transition-all"
               />
-            </div>
+            </motion.div>
           </div>
 
           {/* Bottom Row: Tabs & Controls */}
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex bg-white/5 p-1 rounded-xl border border-white/10">
-              <button
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => setShowCompleted(false)}
                 className={`flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-bold transition-all ${
                   !showCompleted 
@@ -214,8 +226,10 @@ function AdminContent() {
               >
                 <Inbox size={18} />
                 Active Orders
-              </button>
-              <button
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => setShowCompleted(true)}
                 className={`flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-bold transition-all ${
                   showCompleted 
@@ -225,19 +239,23 @@ function AdminContent() {
               >
                 <History size={18} />
                 Order History
-              </button>
+              </motion.button>
             </div>
 
             <div className="flex items-center gap-3">
-              <button 
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={handleRefresh}
                 className="flex items-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 text-secondary-text rounded-xl border border-white/10 transition-all text-sm font-bold"
               >
                 <RefreshCcw size={18} className={isLoading ? 'animate-spin' : ''} />
                 <span className="hidden sm:inline">Sync</span>
-              </button>
+              </motion.button>
 
-              <button 
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => setNotificationsEnabled(!notificationsEnabled)}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all text-sm font-bold ${
                   notificationsEnabled ? 'text-accent bg-accent/10 border-accent/20' : 'text-secondary-text bg-white/5 border-white/10'
@@ -245,16 +263,18 @@ function AdminContent() {
               >
                 {notificationsEnabled ? <Bell size={18} className="animate-bounce" /> : <BellOff size={18} />}
                 <span className="hidden sm:inline">Alerts: {notificationsEnabled ? 'ON' : 'OFF'}</span>
-              </button>
+              </motion.button>
 
               {showCompleted && filteredOrders.length > 0 && (
-                <button 
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={handleClearHistory}
                   className="flex items-center gap-2 px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl border border-red-500/20 transition-all text-sm font-bold"
                 >
                   <Trash2 size={18} />
                   <span className="hidden sm:inline">Clear History</span>
-                </button>
+                </motion.button>
               )}
             </div>
           </div>

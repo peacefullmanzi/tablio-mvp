@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import AdminSidebar from './AdminSidebar';
 import { createContext, useContext } from 'react';
+import { adminFetch } from '@/lib/api-client';
 
 interface SidebarContextType {
   isCollapsed: boolean;
@@ -41,32 +42,26 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
 
     const verifyAccess = async () => {
       const restaurantId = getRestaurantId();
-      const authKey = restaurantId ? `tablio_admin_auth_${restaurantId}` : 'tablio_admin_auth';
-      const auth = localStorage.getItem(authKey);
+      const token = localStorage.getItem('tablio_token');
       
-      if (!auth || !restaurantId) {
+      if (!token || !restaurantId) {
         router.push(`/admin/login${restaurantId ? `?rid=${restaurantId}` : ''}`);
         setAuthorized(false);
         return;
       }
 
       try {
-        const response = await fetch('/api/admin/auth/verify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ pin: auth, restaurantId })
-        });
+        const response = await adminFetch('/api/admin/auth/session');
 
         if (response.ok) {
           setAuthorized(true);
         } else {
-          localStorage.removeItem(authKey);
+          localStorage.removeItem('tablio_token');
           router.push(`/admin/login?rid=${restaurantId}`);
           setAuthorized(false);
         }
       } catch (err) {
         console.error("Auth verification failed:", err);
-        // Fallback: stay unauthorized if verify fails
         setAuthorized(false);
       }
     };

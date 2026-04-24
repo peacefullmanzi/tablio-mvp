@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { X, Save } from 'lucide-react';
 import { MenuItem } from '@/types/menu';
+import { adminFetch } from '@/lib/api-client';
 
 interface MenuItemModalProps {
   isOpen: boolean;
@@ -35,9 +36,6 @@ export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem 
 
     setIsSubmitting(true);
     try {
-      const authKey = `tablio_admin_auth_${restaurantId}`;
-      const pin = localStorage.getItem(authKey) || localStorage.getItem('tablio_admin_auth');
-
       const itemData = {
         name,
         price: parseFloat(price),
@@ -45,10 +43,9 @@ export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem 
         image: image || null,
       };
 
-      const response = await fetch('/api/admin/menu', {
+      const response = await adminFetch('/api/admin/menu', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ item: itemData, pin, id: editingItem?.id, restaurantId })
+        body: JSON.stringify({ item: itemData, id: editingItem?.id, restaurantId })
       });
 
       if (!response.ok) {

@@ -6,11 +6,15 @@ interface CartState {
   addToCart: (item: CartItem) => void;
   removeFromCart: (itemId: string) => void;
   clearCart: () => void;
+  tableNumber: string;
+  setTableNumber: (val: string) => void;
   getTotal: () => number;
 }
 
 export const useStore = create<CartState>((set, get) => ({
   items: [],
+  tableNumber: '',
+  setTableNumber: (val) => set({ tableNumber: val }),
   addToCart: (item) => set((state) => {
     const existingItem = state.items.find(i => i.id === item.id);
     if (existingItem) {

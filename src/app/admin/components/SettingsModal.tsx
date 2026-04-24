@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { X, Shield, Check, AlertCircle, Loader2, QrCode, Download, Printer } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { adminFetch } from '@/lib/api-client';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -66,9 +67,8 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch('/api/admin/settings/pin', {
+      const response = await adminFetch('/api/admin/settings/pin', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ currentPin, newPin, restaurantId })
       });
 
@@ -261,7 +261,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="flex-[2] px-6 py-4 bg-accent hover:scale-[1.02] active:scale-95 text-background rounded-2xl font-black text-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-xl shadow-accent/20"
+                      className="flex-2 px-6 py-4 bg-accent hover:scale-[1.02] active:scale-95 text-background rounded-2xl font-black text-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-xl shadow-accent/20"
                     >
                       {isSubmitting ? <Loader2 className="animate-spin" size={24} /> : 'UPDATE PIN'}
                     </button>
@@ -301,7 +301,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
                 <div className="flex justify-center">
                   {/* Preview Card */}
-                  <div className="w-full max-w-[280px] aspect-[3/4] bg-white rounded-3xl p-8 flex flex-col items-center justify-between shadow-2xl ring-1 ring-black/5 relative overflow-hidden group">
+                  <div className="w-full max-w-[280px] aspect-3/4 bg-white rounded-3xl p-8 flex flex-col items-center justify-between shadow-2xl ring-1 ring-black/5 relative overflow-hidden group">
                     <div className="absolute inset-0 bg-accent/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                     
                     <div className="text-center z-10">

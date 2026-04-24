@@ -8,7 +8,7 @@ import StatusIndicator from '../../components/StatusIndicator';
 import { ShoppingBag, ArrowLeft, Receipt, Clock } from 'lucide-react';
 import Link from 'next/link';
 import { formatPrice } from '@/lib/utils';
-import ChatBox from '../../components/ChatBox';
+import GlobalChat from '../../components/GlobalChat';
 
 interface TrackingPageProps {
   params: Promise<{ id: string }>;
@@ -154,11 +154,11 @@ export default function TrackingPage({ params }: TrackingPageProps) {
           </button>
         </div>
 
-        <ChatBox 
-          orderId={id} 
+        <GlobalChat 
+          restaurantId={order.restaurantId}
+          tableNumber={order.table_number} 
           isOpen={isChatOpen} 
           onClose={() => setIsChatOpen(false)}
-          orderStatus={order.status}
         />
       </main>
     </div>

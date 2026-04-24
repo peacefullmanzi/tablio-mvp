@@ -7,6 +7,7 @@ import { formatPrice } from '@/lib/utils';
 import { collection, query, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import AdminChat from './AdminChat';
+import { adminFetch } from '@/lib/api-client';
 
 interface OrderCardProps {
   order: Order;
@@ -30,13 +31,9 @@ export default function OrderCard({ order, onMessageCountChange }: OrderCardProp
         alert('Configuration error: restaurantId not set.');
         return;
       }
-      const authKey = `tablio_admin_auth_${restaurantId}`;
-      const pin = localStorage.getItem(authKey) || localStorage.getItem('tablio_admin_auth');
-      
-      const response = await fetch(`/api/admin/orders/${order.id}/status`, {
+      const response = await adminFetch(`/api/admin/orders/${order.id}/status`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus, pin, restaurantId })
+        body: JSON.stringify({ status: newStatus, restaurantId })
       });
 
       if (!response.ok) {

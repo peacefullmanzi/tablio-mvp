@@ -12,6 +12,7 @@ import { MenuItemSkeleton } from '../components/Skeleton';
 import { useSidebar } from '../components/AdminGuard';
 
 import { useSearchParams } from 'next/navigation';
+import { adminFetch } from '@/lib/api-client';
 
 import { Suspense } from 'react';
 
@@ -42,6 +43,7 @@ function MenuContent() {
     const restaurantId = getRestaurantId();
     if (!restaurantId) {
       console.error('[MenuManagement] No restaurantId found.');
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsLoading(false);
       return;
     }
@@ -79,12 +81,9 @@ function MenuContent() {
       return;
     }
     try {
-      const authKey = `tablio_admin_auth_${restaurantId}`;
-      const pin = localStorage.getItem(authKey) || localStorage.getItem('tablio_admin_auth');
-      const response = await fetch(`/api/admin/menu/${id}`, {
+      const response = await adminFetch(`/api/admin/menu/${id}`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pin, restaurantId })
+        body: JSON.stringify({ restaurantId })
       });
 
       if (!response.ok) {

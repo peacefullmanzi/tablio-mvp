@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
 import { validateAdminPin, isStrongPin, hashPin } from '@/lib/admin-utils';
-import { parseAndValidateBody } from '@/lib/api-security';
+import { parseAndValidateBody, requireAdminAuth } from '@/lib/api-security';
 
 export async function POST(request: Request) {
   try {
@@ -10,15 +10,21 @@ export async function POST(request: Request) {
     if ('error' in parsed) return parsed.error;
     const body = parsed.data;
 
-    const { currentPin, newPin, restaurantId } = body;
+    // 2. Validate JWT Authentication
+    const auth = await requireAdminAuth(request);
+    if ('error' in auth) return auth.error;
+    
+    const currentPin = body.currentPin as string;
+    const newPin = body.newPin as string;
+    const restaurantId = body.restaurantId as string;
     const now = new Date();
 
-    if (!currentPin || !newPin || typeof currentPin !== 'string' || typeof newPin !== 'string') {
-      return NextResponse.json({ error: 'Current PIN and new PIN are required' }, { status: 400 });
+    if (!currentPin || !newPin || !restaurantId) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    if (!restaurantId || typeof restaurantId !== 'string') {
-      return NextResponse.json({ error: 'restaurantId is required' }, { status: 400 });
+    if (auth.restaurantId !== restaurantId) {
+      return NextResponse.json({ error: 'Forbidden: Restaurant mismatch' }, { status: 403 });
     }
 
     // 2. Enforce Strong PIN Policy

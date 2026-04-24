@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
-import { parseAndValidateBody, requireAdminPin, requireRestaurantId, requireValidStatus } from '@/lib/api-security';
+import { parseAndValidateBody, requireAdminAuth, requireRestaurantId, requireValidStatus } from '@/lib/api-security';
 
 export async function POST(
   request: Request,
@@ -14,21 +14,17 @@ export async function POST(
       return NextResponse.json({ error: 'Invalid order ID' }, { status: 400 });
     }
 
-    // 2. Parse body with 1MB size limit
+    // 2. Validate JWT Authentication
+    const auth = await requireAdminAuth(request);
+    if ('error' in auth) return auth.error;
+    const { restaurantId } = auth;
+
+    // 3. Parse body
     const parsed = await parseAndValidateBody(request);
     if ('error' in parsed) return parsed.error;
     const body = parsed.data;
 
-    // 3. Validate restaurantId
-    const restaurantError = requireRestaurantId(body);
-    if (restaurantError) return restaurantError;
-    const restaurantId = body.restaurantId as string;
-
-    // 4. Validate Admin PIN
-    const pinError = await requireAdminPin(body);
-    if (pinError) return pinError;
-
-    // 5. Validate status is a valid enum value
+    // 4. Validate status is a valid enum value
     const statusError = requireValidStatus(body);
     if (statusError) return statusError;
     const status = body.status as string;

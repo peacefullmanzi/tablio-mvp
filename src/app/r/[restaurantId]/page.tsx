@@ -9,7 +9,11 @@ import Cart from '../../customer/components/Cart';
 import { UtensilsCrossed, ExternalLink, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { motion } from 'framer-motion';
 import { MenuItemSkeleton } from '../../admin/components/Skeleton';
+import { useStore } from '@/lib/store';
+import GlobalChat from '../../customer/components/GlobalChat';
+import { MessageCircle } from 'lucide-react';
 
 interface RestaurantData {
   name: string;
@@ -22,6 +26,8 @@ export default function RestaurantMenuPage({ params }: { params: Promise<{ resta
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeOrderId, setActiveOrderId] = useState<string | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const { tableNumber } = useStore();
 
   useEffect(() => {
     // Check for active order in local storage
@@ -99,32 +105,63 @@ export default function RestaurantMenuPage({ params }: { params: Promise<{ resta
   return (
     <div className="min-h-screen bg-background text-primary-text">
       <header className="relative w-full h-32 sm:h-40 bg-background overflow-hidden border-b border-white/5">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1 }}
+          className="absolute inset-0 overflow-hidden pointer-events-none"
+        >
           <div className="absolute -top-24 -right-24 w-96 h-96 bg-accent/15 blur-[100px] rounded-full" />
           <div className="absolute inset-0 bg-linear-to-t from-background via-transparent to-transparent" />
-        </div>
+        </motion.div>
         
         <div className="absolute inset-0 flex flex-col justify-end p-6 pb-6">
           <div className="flex items-end justify-between max-w-4xl mx-auto w-full">
-            <div>
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            >
               <div className="flex items-center gap-3 mb-2">
-                <Image src="/logo.png" alt="Tablio Logo" width={64} height={64} className="h-10 sm:h-12 w-auto object-contain" />
+                <motion.div
+                  whileHover={{ rotate: [0, -5, 5, 0] }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <Image src="/logo.png" alt="Tablio Logo" width={64} height={64} className="h-10 sm:h-12 w-auto object-contain" />
+                </motion.div>
                 <h1 className="text-3xl sm:text-5xl font-black text-primary-text tracking-tight leading-none">
                   {restaurant?.name || 'Tablio Kitchen'}
                 </h1>
               </div>
               <p className="text-secondary-text text-sm sm:text-base font-medium ml-1">Elevated dining, ordered instantly.</p>
-            </div>
-            
+            </motion.div>
             {activeOrderId && (
-              <Link 
-                href={`/customer/track/${activeOrderId}`}
-                className="mb-1 flex items-center gap-2 px-4 py-3 bg-white/10 backdrop-blur-md border border-white/20 text-primary-text rounded-2xl text-sm font-bold shadow-xl active:scale-95 transition-all"
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="mb-1"
               >
-                <ExternalLink size={16} />
-                <span className="hidden sm:inline">Track Order</span>
-              </Link>
+                <Link 
+                  href={`/customer/track/${activeOrderId}`}
+                  className="flex items-center gap-2 px-4 py-3 bg-white/10 backdrop-blur-md border border-white/20 text-primary-text rounded-2xl text-sm font-bold shadow-xl transition-all"
+                >
+                  <ExternalLink size={16} />
+                  <span className="hidden sm:inline">Track Order</span>
+                </Link>
+              </motion.div>
             )}
+
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setIsChatOpen(true)}
+              className="mb-1 flex items-center gap-2 px-4 py-3 bg-white/10 backdrop-blur-md border border-white/20 text-primary-text rounded-2xl text-sm font-bold shadow-xl transition-all"
+            >
+              <MessageCircle size={16} />
+              <span className="hidden sm:inline">Help</span>
+            </motion.button>
           </div>
         </div>
       </header>
@@ -149,6 +186,13 @@ export default function RestaurantMenuPage({ params }: { params: Promise<{ resta
       </main>
 
       <Cart restaurantIdOverride={restaurantId} />
+
+      <GlobalChat 
+        restaurantId={restaurantId}
+        tableNumber={tableNumber || 'Pending'}
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+      />
     </div>
   );
 }

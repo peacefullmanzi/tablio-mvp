@@ -5,6 +5,7 @@ import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from 
 import { db } from '@/lib/firebase';
 import { X, Send, MessageCircle } from 'lucide-react';
 import { createPortal } from 'react-dom';
+import { adminFetch } from '@/lib/api-client';
 
 interface AdminChatProps {
   orderId: string;
@@ -64,17 +65,12 @@ export default function AdminChat({ orderId, tableNumber, isOpen, onClose, order
       };
       
       const restaurantId = getRestaurantId();
-      const authKey = `tablio_admin_auth_${restaurantId}`;
-      const pin = localStorage.getItem(authKey) || localStorage.getItem('tablio_admin_auth');
-
-      const response = await fetch('/api/admin/chat', {
+      const response = await adminFetch('/api/admin/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           orderId,
           text: inputText,
-          restaurantId,
-          pin
+          restaurantId
         })
       });
 

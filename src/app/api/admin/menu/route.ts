@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
-import { parseAndValidateBody, requireAdminPin, requireRestaurantId } from '@/lib/api-security';
+import { parseAndValidateBody, requireAdminAuth, requireRestaurantId } from '@/lib/api-security';
 
 export async function POST(request: Request) {
   try {
@@ -9,14 +9,10 @@ export async function POST(request: Request) {
     if ('error' in parsed) return parsed.error;
     const body = parsed.data;
 
-    // 2. Validate restaurantId
-    const restaurantError = requireRestaurantId(body);
-    if (restaurantError) return restaurantError;
-    const restaurantId = body.restaurantId as string;
-
-    // 3. Validate Admin PIN
-    const pinError = await requireAdminPin(body);
-    if (pinError) return pinError;
+    // 2. Validate JWT Authentication
+    const auth = await requireAdminAuth(request);
+    if ('error' in auth) return auth.error;
+    const { restaurantId } = auth;
 
     // 4. Validate item data with strict type checks
     const item = body.item as Record<string, unknown> | undefined;

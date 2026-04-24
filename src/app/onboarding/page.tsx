@@ -143,7 +143,7 @@ export default function OnboardingPage() {
             <Store size={32} className="text-accent" />
           </div>
           <h1 className="text-4xl font-black text-primary-text tracking-tighter">Welcome to Tablio</h1>
-          <p className="text-secondary-text">Let's set up your digital kitchen.</p>
+          <p className="text-secondary-text">Let&apos;s set up your digital kitchen.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-card border border-white/10 rounded-3xl p-8 shadow-2xl space-y-6">

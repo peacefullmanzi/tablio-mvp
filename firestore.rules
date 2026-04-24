@@ -70,6 +70,17 @@ service cloud.firestore {
     }
 
     // -----------------------------------------------------------------------
+    // GLOBAL MESSAGES — Chat between any customer and admin (by table)
+    // -----------------------------------------------------------------------
+    match /messages/{messageId} {
+      allow read: if true;
+      allow create: if request.resource.data.message is string
+                    && request.resource.data.message.size() > 0
+                    && request.resource.data.sender == 'customer';
+      allow update, delete: if false;
+    }
+
+    // -----------------------------------------------------------------------
     // SETTINGS — Completely locked down. Admin SDK only.
     // -----------------------------------------------------------------------
     match /settings/{settingId} {

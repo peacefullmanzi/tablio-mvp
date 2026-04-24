@@ -11,10 +11,9 @@ interface CartProps {
 }
 
 export default function Cart({ restaurantIdOverride }: CartProps) {
-  const { items, getTotal, removeFromCart, addToCart, clearCart } = useStore();
+  const { items, getTotal, removeFromCart, addToCart, clearCart, tableNumber, setTableNumber } = useStore();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [tableNumber, setTableNumber] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const total = getTotal();

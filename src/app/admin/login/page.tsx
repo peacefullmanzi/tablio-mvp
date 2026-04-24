@@ -19,10 +19,9 @@ function LoginContent() {
   useEffect(() => {
     // If already authenticated for THIS restaurant, verify and redirect
     const restaurantId = getRestaurantId();
-    const authKey = restaurantId ? `tablio_admin_auth_${restaurantId}` : 'tablio_admin_auth';
-    const auth = localStorage.getItem(authKey);
+    const token = localStorage.getItem('tablio_token');
     
-    if (auth && restaurantId) {
+    if (token && restaurantId) {
       router.push(`/admin?rid=${restaurantId}`);
     }
   }, [router, ridParam]);
@@ -64,6 +63,7 @@ function LoginContent() {
       if (response.ok) {
         const authKey = `tablio_admin_auth_${restaurantId}`;
         localStorage.setItem(authKey, pin);
+        localStorage.setItem('tablio_token', data.token); // Store JWT
         router.push(`/admin?rid=${restaurantId}`);
       } else {
         setError(data.error || 'Invalid credentials');

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { validateAdminPin } from './admin-utils';
+import jwt from 'jsonwebtoken';
 
 // =============================================================================
 // SECURITY MIDDLEWARE — Shared guards for all API routes
@@ -150,4 +151,50 @@ export function requireValidStatus(
     );
   }
   return null;
+}
+
+/**
+ * Validates the JWT token from the Authorization header.
+ * Returns the decoded restaurantId or an error response.
+ */
+export async function requireAdminAuth(
+  request: Request
+): Promise<{ restaurantId: string } | { error: NextResponse }> {
+  const authHeader = request.headers.get('Authorization');
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return {
+      error: NextResponse.json(
+        { error: 'Unauthorized: Missing or invalid token' },
+        { status: 401 }
+      ),
+    };
+  }
+
+  const token = authHeader.split(' ')[1];
+
+  try {
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || 'fallback-secret'
+    ) as { restaurantId: string };
+
+    if (!decoded.restaurantId) {
+      return {
+        error: NextResponse.json(
+          { error: 'Unauthorized: Invalid token payload' },
+          { status: 401 }
+        ),
+      };
+    }
+
+    return { restaurantId: decoded.restaurantId };
+  } catch (error) {
+    return {
+      error: NextResponse.json(
+        { error: 'Unauthorized: Token expired or invalid' },
+        { status: 401 }
+      ),
+    };
+  }
 }

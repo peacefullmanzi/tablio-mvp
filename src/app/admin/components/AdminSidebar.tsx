@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Utensils, Settings, LogOut, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
+import { LayoutDashboard, Utensils, Settings, LogOut, ChevronLeft, ChevronRight, ExternalLink, MessageCircle } from 'lucide-react';
 import Image from 'next/image';
 import { useState } from 'react';
 import SettingsModal from './SettingsModal';
@@ -28,6 +28,7 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: AdminSideb
   const navItems = [
     { label: 'Dashboard', icon: LayoutDashboard, href: `/admin?rid=${restaurantId}` },
     { label: 'Menu Manager', icon: Utensils, href: `/admin/menu?rid=${restaurantId}` },
+    { label: 'Support Chat', icon: MessageCircle, href: `/admin/chat?rid=${restaurantId}` },
     { label: 'Live Menu', icon: ExternalLink, href: `/r/${restaurantId}`, isExternal: true },
   ];
 
@@ -105,6 +106,7 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: AdminSideb
               } else {
                 localStorage.removeItem('tablio_admin_auth');
               }
+              localStorage.removeItem('tablio_token');
               router.push(`/admin/login${rid ? `?rid=${rid}` : ''}`);
             }}
             className={`w-full flex items-center px-4 py-3 rounded-xl font-bold text-red-400 hover:bg-red-400/10 transition-all ${isCollapsed ? 'lg:justify-center' : 'gap-3'}`}
