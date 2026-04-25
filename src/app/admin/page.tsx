@@ -288,8 +288,6 @@ function AdminContent() {
           )}
         </div>
       </main>
-
-      <audio ref={audioRef} src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3" preload="auto" />
     </div>
   );
 }
