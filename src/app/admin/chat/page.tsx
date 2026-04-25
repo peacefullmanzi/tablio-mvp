@@ -29,15 +29,18 @@ function ChatContent() {
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [activeOrderIds, setActiveOrderIds] = useState<Set<string>>(new Set());
 
   const { setHasNewMessages } = useStore();
   
   const getRestaurantId = () => ridParam || localStorage.getItem('tablio_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID;
 
+  // Clear notifications on mount
   useEffect(() => {
     setHasNewMessages(false);
   }, [setHasNewMessages]);
 
+  // Listen for messages
   useEffect(() => {
     const restaurantId = getRestaurantId();
     if (!restaurantId) return;
@@ -53,7 +56,6 @@ function ChatContent() {
         ...doc.data()
       })) as Message[];
 
-      // Sort client-side to avoid index requirements
       msgs.sort((a, b) => {
         const timeA = (a.createdAt as any)?.seconds || 0;
         const timeB = (b.createdAt as any)?.seconds || 0;
@@ -64,7 +66,8 @@ function ChatContent() {
       setIsLoading(false);
     });
 
-  const [activeOrderIds, setActiveOrderIds] = useState<Set<string>>(new Set());
+    return () => unsubscribe();
+  }, [ridParam]);
 
   // Listen for active orders to filter chat
   useEffect(() => {
@@ -100,7 +103,6 @@ function ChatContent() {
     };
   })
   .filter(room => {
-    // Show if it's a pre-order (no orderId yet) OR if the order is still active
     return !room.orderId || room.orderId === 'PRE-ORDER' || activeOrderIds.has(room.orderId);
   })
   .sort((a, b) => a.tableNumber.localeCompare(b.tableNumber));
@@ -116,17 +118,15 @@ function ChatContent() {
 
     const restaurantId = getRestaurantId();
     try {
-      const response = await adminFetch('/api/admin/chat', {
+      await adminFetch('/api/admin/chat', {
         method: 'POST',
         body: JSON.stringify({
           restaurantId,
           tableNumber: selectedRoom.tableNumber,
-          orderId: selectedRoom.orderId, // Target the specific order session
+          orderId: selectedRoom.orderId,
           message: inputText
         })
       });
-
-      if (!response.ok) throw new Error('Failed to send message');
       setInputText('');
     } catch (error) {
       console.error("Failed to send message:", error);
@@ -146,21 +146,18 @@ function ChatContent() {
           >
             <Menu size={24} />
           </button>
-          <div>
-            <h1 className="text-2xl font-black text-primary-text tracking-tight flex items-center gap-3">
-              Support Center
-              {messages.length > 0 && (
-                <span className="bg-accent/10 text-accent text-[10px] px-2 py-0.5 rounded-full border border-accent/20">
-                  {rooms.length} Active Sessions
-                </span>
-              )}
-            </h1>
-          </div>
+          <h1 className="text-2xl font-black text-primary-text tracking-tight flex items-center gap-3">
+            Support Center
+            {rooms.length > 0 && (
+              <span className="bg-accent/10 text-accent text-[10px] px-2 py-0.5 rounded-full border border-accent/20">
+                {rooms.length} Active Sessions
+              </span>
+            )}
+          </h1>
         </div>
       </header>
 
       <div className="flex-1 flex overflow-hidden">
-        {/* Table List Sidebar */}
         <div className="w-64 border-r border-white/5 flex flex-col shrink-0 bg-card/30">
           <div className="p-4 border-b border-white/5 text-xs font-black text-secondary-text/50 uppercase tracking-widest">
             Active Chats
@@ -197,7 +194,6 @@ function ChatContent() {
           </div>
         </div>
 
-        {/* Chat Window */}
         <div className="flex-1 flex flex-col bg-background/50 relative">
           {!selectedRoom ? (
             <div className="flex-1 flex flex-col items-center justify-center text-secondary-text p-12 text-center">
@@ -209,7 +205,6 @@ function ChatContent() {
             </div>
           ) : (
             <>
-              {/* Messages Area */}
               <div className="flex-1 overflow-y-auto p-6 space-y-4 flex flex-col">
                 {filteredMessages.map((msg) => (
                   <div 
@@ -230,7 +225,6 @@ function ChatContent() {
                 ))}
               </div>
 
-              {/* Input Area */}
               <div className="p-6 bg-card/50 border-t border-white/5">
                 <form onSubmit={handleSendMessage} className="flex gap-4">
                   <input
