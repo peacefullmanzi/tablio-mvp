@@ -8,7 +8,7 @@ import { X, Send, MessageCircle } from 'lucide-react';
 interface GlobalChatProps {
   restaurantId: string;
   tableNumber: string;
-  orderId: string;
+  orderId?: string;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -21,7 +21,7 @@ interface Message {
   roomId: string;
 }
 
-export default function GlobalChat({ restaurantId, tableNumber, orderId, isOpen, onClose }: GlobalChatProps) {
+export default function GlobalChat({ restaurantId, tableNumber, orderId = 'PRE-ORDER', isOpen, onClose }: GlobalChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isSending, setIsSending] = useState(false);
