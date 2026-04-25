@@ -64,10 +64,33 @@ function ChatContent() {
       setIsLoading(false);
     });
 
+  const [activeOrderIds, setActiveOrderIds] = useState<Set<string>>(new Set());
+
+  // Listen for active orders to filter chat
+  useEffect(() => {
+    const restaurantId = getRestaurantId();
+    if (!restaurantId) return;
+
+    const q = query(
+      collection(db, 'orders'),
+      where('restaurantId', '==', restaurantId)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const activeIds = new Set<string>();
+      snapshot.docs.forEach(doc => {
+        const data = doc.data();
+        if (data.status !== 'completed') {
+          activeIds.add(doc.id);
+        }
+      });
+      setActiveOrderIds(activeIds);
+    });
+
     return () => unsubscribe();
   }, [ridParam]);
 
-  // Group unique rooms
+  // Group unique rooms and filter out completed ones
   const rooms = Array.from(new Set(messages.map(m => m.roomId))).map(roomId => {
     const firstMsg = messages.find(m => m.roomId === roomId);
     return {
@@ -75,7 +98,12 @@ function ChatContent() {
       tableNumber: firstMsg?.tableNumber || '?',
       orderId: firstMsg?.orderId || '?'
     };
-  }).sort((a, b) => a.tableNumber.localeCompare(b.tableNumber));
+  })
+  .filter(room => {
+    // Show if it's a pre-order (no orderId yet) OR if the order is still active
+    return !room.orderId || room.orderId === 'PRE-ORDER' || activeOrderIds.has(room.orderId);
+  })
+  .sort((a, b) => a.tableNumber.localeCompare(b.tableNumber));
 
   const selectedRoom = rooms.find(r => r.roomId === selectedRoomId);
   const filteredMessages = selectedRoomId 
