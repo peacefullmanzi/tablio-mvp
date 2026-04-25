@@ -28,7 +28,6 @@ function AdminContent() {
 
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const prevOrderCount = useRef<number | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const handleMessageCountChange = useCallback((orderId: string, count: number) => {
     setMessageCounts(prev => {
@@ -93,13 +92,7 @@ function AdminContent() {
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       console.log(`[AdminPage] Snapshot update: Found ${querySnapshot.size} orders`);
       
-      // Handle Sound for New Orders
-      if (!isLoading && notificationsEnabled) {
-        const hasNewOrder = querySnapshot.docChanges().some(change => change.type === 'added');
-        if (hasNewOrder && audioRef.current) {
-          audioRef.current.play().catch(e => console.warn("Order sound blocked:", e));
-        }
-      }
+      // (Notifications handled globally in AdminGuard)
 
       const fetchedOrders: Order[] = [];
       querySnapshot.forEach((doc) => {

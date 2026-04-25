@@ -259,6 +259,13 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                       type="button"
                       onClick={async () => {
                         try {
+                          // Test Native Notification
+                          if (Notification.permission === 'granted') {
+                            new Notification('Tablio Test', { body: 'This is a test background alert!' });
+                          } else {
+                            Notification.requestPermission();
+                          }
+
                           const response = await adminFetch('/api/admin/chat', {
                             method: 'POST',
                             body: JSON.stringify({
@@ -268,7 +275,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                               message: 'This is a test notification from the system!'
                             })
                           });
-                          if (response.ok) alert("Test triggered! Wait 2 seconds...");
+                          if (response.ok) alert("Test triggered! Check your desktop notifications.");
                         } catch (err) {
                           alert("Test failed: " + err);
                         }

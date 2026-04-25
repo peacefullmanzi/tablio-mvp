@@ -34,6 +34,7 @@ interface GlobalChatProps {
 }
 
 const BELL_SOUND = "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"; // Clean bell sound
+const ORDER_SOUND = "https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3"; // Digital alert sound
 
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
@@ -52,13 +53,20 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
   const [authorized, setAuthorized] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [activeNotification, setActiveNotification] = useState<{ table: string; orderId: string } | null>(null);
+  const [activeNotification, setActiveNotification] = useState<{ table: string; orderId: string; type: 'chat' | 'order' } | null>(null);
 
   const getRestaurantId = () => ridParam || localStorage.getItem('tablio_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID;
 
   useEffect(() => {
     setTimeout(() => setHasMounted(true), 0);
-    
+
+    // Request native notification permission
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
+    }
+
     // If we are on the login page, don't guard
     if (pathname === '/admin/login') {
       setTimeout(() => setAuthorized(true), 0);
@@ -68,7 +76,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
     const verifyAccess = async () => {
       const restaurantId = getRestaurantId();
       const token = localStorage.getItem('tablio_token');
-      
+
       if (!token || !restaurantId) {
         router.push(`/admin/login${restaurantId ? `?rid=${restaurantId}` : ''}`);
         setAuthorized(false);
@@ -103,14 +111,14 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     pathnameRef.current = pathname;
   }, [pathname]);
-  
+
   useEffect(() => {
     if (!authorized) return;
     const restaurantId = getRestaurantId();
     if (!restaurantId) return;
 
     console.log(`[AdminGuard] Monitoring for new messages for: ${restaurantId}`);
-    
+
     const startTime = new Date();
 
     const q = query(
@@ -123,7 +131,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
         if (change.type === 'added') {
           const data = change.doc.data();
           if (data.sender !== 'customer') return false;
-          
+
           const createdAt = data.createdAt?.toDate?.() || new Date();
           return createdAt.getTime() > startTime.getTime() - 1000;
         }
@@ -135,13 +143,19 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
         if (pathnameRef.current !== '/admin/chat') {
           const firstNew = newMessages[0].doc.data();
           setHasNewMessages(true);
-          setActiveNotification({ 
-            table: firstNew.tableNumber, 
-            orderId: firstNew.orderId || '?' 
+          setActiveNotification({
+            table: firstNew.tableNumber,
+            orderId: firstNew.orderId || '?',
+            type: 'chat'
           });
 
-          // Auto-hide banner after 8 seconds
-          setTimeout(() => setActiveNotification(null), 8000);
+          // Native Background Notification
+          if (Notification.permission === 'granted') {
+            new Notification(`New Message: Table ${firstNew.tableNumber}`, {
+              body: firstNew.message || 'Customer sent a new message.',
+              icon: '/favicon.ico'
+            });
+          }
 
           const audio = new Audio(BELL_SOUND);
           audio.play().catch(e => console.warn("Sound play blocked by browser.", e));
@@ -149,7 +163,48 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
       }
     });
 
-    return () => unsubscribe();
+    // --- GLOBAL ORDER LISTENER ---
+    const qOrders = query(
+      collection(db, 'orders'),
+      where('restaurantId', '==', restaurantId)
+    );
+
+    const unsubscribeOrders = onSnapshot(qOrders, (snapshot) => {
+      const newOrders = snapshot.docChanges().filter(change => {
+        if (change.type === 'added') {
+          const data = change.doc.data();
+          const createdAt = data.createdAt?.toDate?.() || new Date();
+          return createdAt.getTime() > startTime.getTime() - 1000;
+        }
+        return false;
+      });
+
+      if (newOrders.length > 0) {
+        // Always notify for orders regardless of page
+        const firstOrder = newOrders[0].doc.data();
+        setActiveNotification({
+          table: firstOrder.table_number,
+          orderId: newOrders[0].doc.id,
+          type: 'order'
+        });
+
+        // Native Background Notification
+        if (Notification.permission === 'granted') {
+          new Notification(`⚡ New Order! Table ${firstOrder.table_number}`, {
+            body: `A new order has been placed.`,
+            icon: '/favicon.ico'
+          });
+        }
+
+        const audio = new Audio(ORDER_SOUND);
+        audio.play().catch(e => console.warn("Order sound blocked.", e));
+      }
+    });
+
+    return () => {
+      unsubscribe();
+      unsubscribeOrders();
+    };
   }, [authorized, ridParam]);
 
   // During SSR or until mounted, show a loader to prevent any flash
@@ -171,37 +226,43 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
   return (
     <SidebarContext.Provider value={{ isCollapsed: isSidebarCollapsed, setIsCollapsed: setIsSidebarCollapsed }}>
       <div className="h-screen bg-background flex flex-col overflow-hidden w-full relative">
-        
+
         {/* HIGH VISIBILITY NOTIFICATION BANNER */}
         <AnimatePresence>
           {activeNotification && (
-            <motion.div 
+            <motion.div
               initial={{ y: -100, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -100, opacity: 0 }}
-              className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] w-full max-w-md px-4"
+              className="fixed top-4 left-1/2 -translate-x-1/2 z-9999 w-full max-w-md px-4"
             >
               <div className="bg-red-600 text-white rounded-2xl shadow-2xl shadow-red-500/40 p-4 flex items-center justify-between border border-red-500/50">
                 <div className="flex items-center gap-4">
-                  <div className="bg-white/20 p-2 rounded-xl animate-pulse">
+                  <div className={`p-2 rounded-xl animate-pulse ${activeNotification.type === 'order' ? 'bg-amber-500/20 text-amber-500' : 'bg-white/20 text-white'}`}>
                     <MessageSquare size={24} />
                   </div>
                   <div>
-                    <h4 className="font-black text-sm uppercase tracking-tight">New Message Received!</h4>
-                    <p className="text-xs opacity-90 font-medium">Table {activeNotification.table} • Session {activeNotification.orderId.slice(-6).toUpperCase()}</p>
+                    <h4 className="font-black text-sm uppercase tracking-tight">
+                      {activeNotification.type === 'order' ? '⚡ New Order Arrived!' : '💬 New Message Received!'}
+                    </h4>
+                    <p className="text-xs opacity-90 font-medium">Table {activeNotification.table} • {activeNotification.type === 'order' ? 'Pending Kitchen' : `Session ${activeNotification.orderId.slice(-6).toUpperCase()}`}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button 
+                  <button
                     onClick={() => {
-                      router.push(`/admin/chat?rid=${getRestaurantId()}`);
+                      if (activeNotification.type === 'order') {
+                        router.push(`/admin?rid=${getRestaurantId()}`);
+                      } else {
+                        router.push(`/admin/chat?rid=${getRestaurantId()}`);
+                      }
                       setActiveNotification(null);
                     }}
                     className="bg-white text-red-600 px-4 py-2 rounded-xl text-xs font-black hover:bg-white/90 transition-all active:scale-95"
                   >
-                    Reply
+                    {activeNotification.type === 'order' ? 'View Order' : 'Reply'}
                   </button>
-                  <button 
+                  <button
                     onClick={() => setActiveNotification(null)}
                     className="p-2 hover:bg-white/10 rounded-lg transition-colors"
                   >
