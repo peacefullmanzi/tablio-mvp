@@ -157,6 +157,7 @@ export default function TrackingPage({ params }: TrackingPageProps) {
         <GlobalChat 
           restaurantId={order.restaurantId}
           tableNumber={order.table_number} 
+          orderId={id}
           isOpen={isChatOpen} 
           onClose={() => setIsChatOpen(false)}
         />

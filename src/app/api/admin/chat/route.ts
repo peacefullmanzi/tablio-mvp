@@ -30,32 +30,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Firebase Admin not initialized' }, { status: 500 });
     }
 
-    if (orderId) {
-      // Security: Check if order belongs to restaurant
-      const orderRef = adminDb.collection('orders').doc(orderId);
-      const orderDoc = await orderRef.get();
-      
-      if (!orderDoc.exists || orderDoc.data()?.restaurantId !== restaurantId) {
-        return NextResponse.json({ error: 'Forbidden: Order mismatch' }, { status: 403 });
-      }
-
-      // Add message via Admin SDK to subcollection
-      await orderRef.collection('messages').add({
-        text,
-        sender: 'admin',
-        timestamp: FieldValue.serverTimestamp()
-      });
-    } else {
-      // Add message via Admin SDK to top-level collection
-      await adminDb.collection('messages').add({
-        restaurantId,
-        tableNumber,
-        roomId: `${restaurantId}_${tableNumber}`,
-        message: text,
-        sender: 'admin',
-        createdAt: FieldValue.serverTimestamp()
-      });
-    }
+    // Add message via Admin SDK to top-level collection
+    await adminDb.collection('messages').add({
+      restaurantId,
+      tableNumber,
+      orderId,
+      roomId: orderId ? `${restaurantId}_${tableNumber}_${orderId}` : `${restaurantId}_${tableNumber}`,
+      message: text,
+      sender: 'admin',
+      createdAt: FieldValue.serverTimestamp()
+    });
 
     return NextResponse.json({ success: true });
   } catch (error: unknown) {

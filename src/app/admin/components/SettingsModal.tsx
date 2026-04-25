@@ -250,6 +250,35 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     </div>
                   )}
 
+                  <div className="p-4 rounded-2xl bg-accent/5 border border-accent/10 flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-bold text-primary-text">Notification Test</h4>
+                      <p className="text-xs text-secondary-text">Verify that sounds and banners are working.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          const response = await adminFetch('/api/admin/chat', {
+                            method: 'POST',
+                            body: JSON.stringify({
+                              restaurantId,
+                              tableNumber: 'TEST',
+                              orderId: 'TEST-SESSION',
+                              message: 'This is a test notification from the system!'
+                            })
+                          });
+                          if (response.ok) alert("Test triggered! Wait 2 seconds...");
+                        } catch (err) {
+                          alert("Test failed: " + err);
+                        }
+                      }}
+                      className="px-4 py-2 bg-accent/20 text-accent rounded-xl text-xs font-black hover:bg-accent/30 transition-all"
+                    >
+                      TRIGGER TEST
+                    </button>
+                  </div>
+
                   <div className="flex gap-4 pt-4">
                     <button
                       type="button"

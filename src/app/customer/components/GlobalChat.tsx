@@ -8,6 +8,7 @@ import { X, Send, MessageCircle } from 'lucide-react';
 interface GlobalChatProps {
   restaurantId: string;
   tableNumber: string;
+  orderId: string;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -20,7 +21,7 @@ interface Message {
   roomId: string;
 }
 
-export default function GlobalChat({ restaurantId, tableNumber, isOpen, onClose }: GlobalChatProps) {
+export default function GlobalChat({ restaurantId, tableNumber, orderId, isOpen, onClose }: GlobalChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -29,7 +30,7 @@ export default function GlobalChat({ restaurantId, tableNumber, isOpen, onClose 
   useEffect(() => {
     if (!isOpen || !restaurantId || !tableNumber) return;
 
-    const roomId = `${restaurantId}_${tableNumber}`;
+    const roomId = `${restaurantId}_${tableNumber}_${orderId}`;
     const q = query(
       collection(db, 'messages'),
       where('roomId', '==', roomId)
@@ -69,7 +70,8 @@ export default function GlobalChat({ restaurantId, tableNumber, isOpen, onClose 
       await addDoc(collection(db, 'messages'), {
         restaurantId,
         tableNumber,
-        roomId: `${restaurantId}_${tableNumber}`,
+        orderId,
+        roomId: `${restaurantId}_${tableNumber}_${orderId}`,
         message: inputText,
         sender: 'customer',
         createdAt: serverTimestamp()

@@ -17,6 +17,8 @@ interface Message {
   tableNumber: string;
   restaurantId: string;
   createdAt: unknown;
+  roomId: string;
+  orderId: string;
 }
 
 function ChatContent() {
@@ -24,7 +26,7 @@ function ChatContent() {
   const ridParam = searchParams.get('rid');
   
   const [messages, setMessages] = useState<Message[]>([]);
-  const [selectedTable, setSelectedTable] = useState<string | null>(null);
+  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
@@ -65,14 +67,24 @@ function ChatContent() {
     return () => unsubscribe();
   }, [ridParam]);
 
-  const tables = Array.from(new Set(messages.map(m => m.tableNumber))).sort();
-  const filteredMessages = selectedTable 
-    ? messages.filter(m => m.tableNumber === selectedTable)
+  // Group unique rooms
+  const rooms = Array.from(new Set(messages.map(m => m.roomId))).map(roomId => {
+    const firstMsg = messages.find(m => m.roomId === roomId);
+    return {
+      roomId,
+      tableNumber: firstMsg?.tableNumber || '?',
+      orderId: firstMsg?.orderId || '?'
+    };
+  }).sort((a, b) => a.tableNumber.localeCompare(b.tableNumber));
+
+  const selectedRoom = rooms.find(r => r.roomId === selectedRoomId);
+  const filteredMessages = selectedRoomId 
+    ? messages.filter(m => m.roomId === selectedRoomId)
     : [];
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputText.trim() || !selectedTable) return;
+    if (!inputText.trim() || !selectedRoom) return;
 
     const restaurantId = getRestaurantId();
     try {
@@ -80,7 +92,8 @@ function ChatContent() {
         method: 'POST',
         body: JSON.stringify({
           restaurantId,
-          tableNumber: selectedTable,
+          tableNumber: selectedRoom.tableNumber,
+          orderId: selectedRoom.orderId, // Target the specific order session
           message: inputText
         })
       });
@@ -110,7 +123,7 @@ function ChatContent() {
               Support Center
               {messages.length > 0 && (
                 <span className="bg-accent/10 text-accent text-[10px] px-2 py-0.5 rounded-full border border-accent/20">
-                  {tables.length} Active Tables
+                  {rooms.length} Active Sessions
                 </span>
               )}
             </h1>
@@ -125,26 +138,31 @@ function ChatContent() {
             Active Chats
           </div>
           <div className="flex-1 overflow-y-auto p-2 space-y-1">
-            {tables.length === 0 ? (
+            {rooms.length === 0 ? (
               <div className="p-8 text-center text-secondary-text text-sm italic">
                 No active messages
               </div>
             ) : (
-              tables.map(table => (
+              rooms.map(room => (
                 <button
-                  key={table}
-                  onClick={() => setSelectedTable(table)}
-                  className={`w-full flex items-center justify-between p-4 rounded-xl transition-all ${
-                    selectedTable === table 
+                  key={room.roomId}
+                  onClick={() => setSelectedRoomId(room.roomId)}
+                  className={`w-full flex flex-col p-4 rounded-xl transition-all text-left ${
+                    selectedRoomId === room.roomId 
                       ? 'bg-accent text-background shadow-lg shadow-accent/20' 
                       : 'text-secondary-text hover:bg-white/5 hover:text-white'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <User size={18} />
-                    <span className="font-bold">Table {table}</span>
+                  <div className="flex items-center justify-between w-full mb-1">
+                    <div className="flex items-center gap-2">
+                      <User size={16} />
+                      <span className="font-bold">Table {room.tableNumber}</span>
+                    </div>
+                    <ChevronRight size={14} className={selectedRoomId === room.roomId ? 'opacity-100' : 'opacity-30'} />
                   </div>
-                  <ChevronRight size={16} className={selectedTable === table ? 'opacity-100' : 'opacity-0'} />
+                  <div className={`text-[9px] font-mono opacity-60 truncate ${selectedRoomId === room.roomId ? 'text-background' : 'text-secondary-text'}`}>
+                    Order: {room.orderId.slice(-8).toUpperCase()}
+                  </div>
                 </button>
               ))
             )}
@@ -153,13 +171,13 @@ function ChatContent() {
 
         {/* Chat Window */}
         <div className="flex-1 flex flex-col bg-background/50 relative">
-          {!selectedTable ? (
+          {!selectedRoom ? (
             <div className="flex-1 flex flex-col items-center justify-center text-secondary-text p-12 text-center">
               <div className="bg-white/5 p-6 rounded-full mb-6">
                 <MessageCircle size={48} className="opacity-20" />
               </div>
-              <h2 className="text-xl font-bold text-primary-text mb-2">Select a table to start chatting</h2>
-              <p className="max-w-xs text-sm">Customer messages will appear here grouped by their table number.</p>
+              <h2 className="text-xl font-bold text-primary-text mb-2">Select a session to start chatting</h2>
+              <p className="max-w-xs text-sm">Customer messages will appear here grouped by their specific order session.</p>
             </div>
           ) : (
             <>
@@ -191,7 +209,7 @@ function ChatContent() {
                     type="text"
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
-                    placeholder={`Reply to Table ${selectedTable}...`}
+                    placeholder={`Reply to Table ${selectedRoom.tableNumber}...`}
                     className="flex-1 bg-background border border-white/10 rounded-2xl px-6 py-4 text-sm focus:border-accent outline-none transition-all shadow-inner"
                   />
                   <button

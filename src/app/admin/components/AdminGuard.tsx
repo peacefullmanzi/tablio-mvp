@@ -8,10 +8,29 @@ import { useStore } from '@/lib/store';
 import AdminSidebar from './AdminSidebar';
 import { createContext, useContext } from 'react';
 import { adminFetch } from '@/lib/api-client';
+import { motion, AnimatePresence } from 'framer-motion';
+import { MessageSquare, X, Bell } from 'lucide-react';
 
 interface SidebarContextType {
   isCollapsed: boolean;
   setIsCollapsed: (v: boolean) => void;
+}
+
+interface Message {
+  id: string;
+  text: string;
+  sender: 'customer' | 'admin';
+  createdAt: unknown;
+  roomId: string;
+  orderId?: string;
+}
+
+interface GlobalChatProps {
+  restaurantId: string;
+  tableNumber: string;
+  orderId: string; // Required for order-specific chat
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 const BELL_SOUND = "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"; // Clean bell sound
@@ -33,6 +52,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
   const [authorized, setAuthorized] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [activeNotification, setActiveNotification] = useState<{ table: string; orderId: string } | null>(null);
 
   const getRestaurantId = () => ridParam || localStorage.getItem('tablio_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID;
 
@@ -102,11 +122,10 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
       const newMessages = snapshot.docChanges().filter(change => {
         if (change.type === 'added') {
           const data = change.doc.data();
-          // Filter for customer messages here to avoid composite index requirement
           if (data.sender !== 'customer') return false;
           
           const createdAt = data.createdAt?.toDate?.() || new Date();
-          return createdAt > startTime;
+          return createdAt.getTime() > startTime.getTime() - 1000;
         }
         return false;
       });
@@ -114,9 +133,18 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
       if (newMessages.length > 0) {
         // Only notify if we are NOT on the chat page
         if (pathnameRef.current !== '/admin/chat') {
+          const firstNew = newMessages[0].doc.data();
           setHasNewMessages(true);
+          setActiveNotification({ 
+            table: firstNew.tableNumber, 
+            orderId: firstNew.orderId || '?' 
+          });
+
+          // Auto-hide banner after 8 seconds
+          setTimeout(() => setActiveNotification(null), 8000);
+
           const audio = new Audio(BELL_SOUND);
-          audio.play().catch(e => console.warn("Sound play blocked by browser. Interaction required.", e));
+          audio.play().catch(e => console.warn("Sound play blocked by browser.", e));
         }
       }
     });
@@ -142,10 +170,54 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
 
   return (
     <SidebarContext.Provider value={{ isCollapsed: isSidebarCollapsed, setIsCollapsed: setIsSidebarCollapsed }}>
-      <div className="h-screen bg-background flex overflow-hidden w-full">
-        <AdminSidebar isCollapsed={isSidebarCollapsed} setIsCollapsed={setIsSidebarCollapsed} />
-        <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'}`}>
-          {children}
+      <div className="h-screen bg-background flex flex-col overflow-hidden w-full relative">
+        
+        {/* HIGH VISIBILITY NOTIFICATION BANNER */}
+        <AnimatePresence>
+          {activeNotification && (
+            <motion.div 
+              initial={{ y: -100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -100, opacity: 0 }}
+              className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] w-full max-w-md px-4"
+            >
+              <div className="bg-red-600 text-white rounded-2xl shadow-2xl shadow-red-500/40 p-4 flex items-center justify-between border border-red-500/50">
+                <div className="flex items-center gap-4">
+                  <div className="bg-white/20 p-2 rounded-xl animate-pulse">
+                    <MessageSquare size={24} />
+                  </div>
+                  <div>
+                    <h4 className="font-black text-sm uppercase tracking-tight">New Message Received!</h4>
+                    <p className="text-xs opacity-90 font-medium">Table {activeNotification.table} • Session {activeNotification.orderId.slice(-6).toUpperCase()}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => {
+                      router.push(`/admin/chat?rid=${getRestaurantId()}`);
+                      setActiveNotification(null);
+                    }}
+                    className="bg-white text-red-600 px-4 py-2 rounded-xl text-xs font-black hover:bg-white/90 transition-all active:scale-95"
+                  >
+                    Reply
+                  </button>
+                  <button 
+                    onClick={() => setActiveNotification(null)}
+                    className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="flex-1 flex overflow-hidden">
+          <AdminSidebar isCollapsed={isSidebarCollapsed} setIsCollapsed={setIsSidebarCollapsed} />
+          <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'}`}>
+            {children}
+          </div>
         </div>
       </div>
     </SidebarContext.Provider>
