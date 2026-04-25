@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { collection, query, where, onSnapshot, limit, orderBy } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { useStore } from '@/lib/store';
 import AdminSidebar from './AdminSidebar';
 import { createContext, useContext } from 'react';
 import { adminFetch } from '@/lib/api-client';
@@ -10,6 +13,8 @@ interface SidebarContextType {
   isCollapsed: boolean;
   setIsCollapsed: (v: boolean) => void;
 }
+
+const BELL_SOUND = "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"; // Clean bell sound
 
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
@@ -70,6 +75,53 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
 
     verifyAccess();
   }, [pathname, router]);
+
+  // --- Real-time Chat Notification Listener ---
+  const setHasNewMessages = useStore(state => state.setHasNewMessages);
+  
+  useEffect(() => {
+    if (!authorized || pathname === '/admin/login') return;
+    const restaurantId = getRestaurantId();
+    if (!restaurantId) return;
+
+    console.log(`[AdminGuard] Monitoring for new messages...`);
+    
+    // We only want to notify for messages created AFTER the staff opened the dashboard
+    const startTime = new Date();
+
+    const q = query(
+      collection(db, 'messages'),
+      where('restaurantId', '==', restaurantId),
+      where('sender', '==', 'customer')
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      // Check if any of the changes are new additions
+      const newMessages = snapshot.docChanges().filter(change => {
+        if (change.type === 'added') {
+          const data = change.doc.data();
+          const createdAt = data.createdAt?.toDate?.() || new Date();
+          return createdAt > startTime;
+        }
+        return false;
+      });
+
+      if (newMessages.length > 0) {
+        console.log(`[AdminGuard] ${newMessages.length} new customer messages!`);
+        
+        // 1. Update UI dot
+        if (pathname !== '/admin/chat') {
+          setHasNewMessages(true);
+        }
+
+        // 2. Play sound (Bell)
+        const audio = new Audio(BELL_SOUND);
+        audio.play().catch(e => console.warn("Sound play blocked by browser:", e));
+      }
+    });
+
+    return () => unsubscribe();
+  }, [authorized, restaurantId, pathname]);
 
   // During SSR or until mounted, show a loader to prevent any flash
   if (!hasMounted || (!authorized && pathname !== '/admin/login')) {

@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, Utensils, Settings, LogOut, ChevronLeft, ChevronRight, ExternalLink, MessageCircle } from 'lucide-react';
 import Image from 'next/image';
 import { useState } from 'react';
+import { useStore } from '@/lib/store';
 import SettingsModal from './SettingsModal';
 
 interface AdminSidebarProps {
@@ -16,6 +17,7 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: AdminSideb
   const pathname = usePathname();
   const router = useRouter();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const { hasNewMessages, setHasNewMessages } = useStore();
 
   const getRestaurantId = () => {
     if (typeof window === 'undefined') return '';
@@ -72,16 +74,24 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: AdminSideb
                 href={item.href}
                 target={item.isExternal ? "_blank" : undefined}
                 rel={item.isExternal ? "noopener noreferrer" : undefined}
-                onClick={() => {
-                  if (window.innerWidth < 1024) setIsCollapsed(true);
-                }}
-                className={`flex items-center px-4 py-3 rounded-xl font-bold transition-all ${
+                className={`flex items-center px-4 py-3 rounded-xl font-bold transition-all relative ${
                   isActive
                     ? 'bg-accent/10 text-accent border border-accent/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]'
                     : 'text-secondary-text hover:bg-white/5 hover:text-primary-text'
                 } ${isCollapsed ? 'lg:justify-center' : 'gap-3'}`}
+                onClick={() => {
+                  if (item.label === 'Support Chat') setHasNewMessages(false);
+                  if (window.innerWidth < 1024) setIsCollapsed(true);
+                }}
               >
                 <item.icon size={20} className={`shrink-0 ${isActive ? 'text-accent' : 'opacity-70'}`} />
+                
+                {/* Notification Dot */}
+                {item.label === 'Support Chat' && hasNewMessages && (
+                  <span className={`absolute bg-red-500 rounded-full border-2 border-card animate-pulse ${
+                    isCollapsed ? 'top-2 right-2 w-3 h-3' : 'top-3 right-4 w-2.5 h-2.5'
+                  }`} />
+                )}
                 {!isCollapsed && (
                   <span className="whitespace-nowrap">{item.label}</span>
                 )}

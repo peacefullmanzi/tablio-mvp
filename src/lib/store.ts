@@ -9,11 +9,15 @@ interface CartState {
   tableNumber: string;
   setTableNumber: (val: string) => void;
   getTotal: () => number;
+  hasNewMessages: boolean;
+  setHasNewMessages: (v: boolean) => void;
 }
 
 export const useStore = create<CartState>((set, get) => ({
   items: [],
   tableNumber: '',
+  hasNewMessages: false,
+  setHasNewMessages: (val) => set({ hasNewMessages: val }),
   setTableNumber: (val) => set({ tableNumber: val }),
   addToCart: (item) => set((state) => {
     const existingItem = state.items.find(i => i.id === item.id);

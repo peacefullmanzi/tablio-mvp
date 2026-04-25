@@ -8,6 +8,7 @@ import { useSidebar } from '../components/AdminGuard';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { adminFetch } from '@/lib/api-client';
+import { useStore } from '@/lib/store';
 
 interface Message {
   id: string;
@@ -27,7 +28,13 @@ function ChatContent() {
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
+  const { setHasNewMessages } = useStore();
+  
   const getRestaurantId = () => ridParam || localStorage.getItem('tablio_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID;
+
+  useEffect(() => {
+    setHasNewMessages(false);
+  }, [setHasNewMessages]);
 
   useEffect(() => {
     const restaurantId = getRestaurantId();
