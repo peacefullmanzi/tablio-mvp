@@ -75,8 +75,9 @@ export default function GlobalChat({ restaurantId, tableNumber, isOpen, onClose 
         createdAt: serverTimestamp()
       });
       setInputText('');
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to send message:", error);
+      alert("Chat Error: " + (error.message || "Unknown error"));
     } finally {
       setIsSending(false);
     }
