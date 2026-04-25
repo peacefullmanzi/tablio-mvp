@@ -126,14 +126,20 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
       where('restaurantId', '==', restaurantId)
     );
 
+    let isFirstMessagesLoad = true;
     const unsubscribe = onSnapshot(q, (snapshot) => {
+      if (isFirstMessagesLoad) {
+        isFirstMessagesLoad = false;
+        return;
+      }
+
       const newMessages = snapshot.docChanges().filter(change => {
         if (change.type === 'added') {
           const data = change.doc.data();
           if (data.sender !== 'customer') return false;
-
+          
           const createdAt = data.createdAt?.toDate?.() || new Date();
-          return createdAt.getTime() > startTime.getTime() - 1000;
+          return createdAt.getTime() > startTime.getTime() - 2000;
         }
         return false;
       });
@@ -164,12 +170,18 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
     });
 
     // --- GLOBAL ORDER LISTENER ---
+    let isFirstOrdersLoad = true;
     const qOrders = query(
       collection(db, 'orders'),
       where('restaurantId', '==', restaurantId)
     );
 
     const unsubscribeOrders = onSnapshot(qOrders, (snapshot) => {
+      if (isFirstOrdersLoad) {
+        isFirstOrdersLoad = false;
+        return;
+      }
+
       const newOrders = snapshot.docChanges().filter(change => {
         if (change.type === 'added') {
           const data = change.doc.data();
