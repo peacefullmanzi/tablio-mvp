@@ -91,7 +91,16 @@ function AdminContent() {
     );
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      console.log(`[AdminPage] Snapshot update: Found ${querySnapshot.size} orders for ${restaurantId}`);
+      console.log(`[AdminPage] Snapshot update: Found ${querySnapshot.size} orders`);
+      
+      // Handle Sound for New Orders
+      if (!isLoading && notificationsEnabled) {
+        const hasNewOrder = querySnapshot.docChanges().some(change => change.type === 'added');
+        if (hasNewOrder && audioRef.current) {
+          audioRef.current.play().catch(e => console.warn("Order sound blocked:", e));
+        }
+      }
+
       const fetchedOrders: Order[] = [];
       querySnapshot.forEach((doc) => {
         const data = doc.data();
@@ -133,20 +142,7 @@ function AdminContent() {
     return () => unsubscribe();
   }, [restaurantId, refreshKey]);
 
-  // Handle Notifications
-  useEffect(() => {
-    if (isLoading || !notificationsEnabled) return;
-
-    // Filter for non-completed orders to track new ones
-    const activeOrders = orders.filter(o => o.status !== 'completed');
-
-    if (prevOrderCount.current !== null && activeOrders.length > prevOrderCount.current) {
-      if (audioRef.current) {
-        audioRef.current.play().catch(e => console.log("Audio play blocked:", e));
-      }
-    }
-    prevOrderCount.current = activeOrders.length;
-  }, [orders, isLoading, notificationsEnabled]);
+  // Notifications are now handled inside the Firestore listener for better performance
 
   const filteredOrders = orders.filter(order => {
     const matchesStatus = showCompleted ? order.status === 'completed' : order.status !== 'completed';

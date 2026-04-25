@@ -78,28 +78,33 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
 
   // --- Real-time Chat Notification Listener ---
   const setHasNewMessages = useStore(state => state.setHasNewMessages);
+  const pathnameRef = useRef(pathname);
+
+  useEffect(() => {
+    pathnameRef.current = pathname;
+  }, [pathname]);
   
   useEffect(() => {
-    if (!authorized || pathname === '/admin/login') return;
+    if (!authorized) return;
     const restaurantId = getRestaurantId();
     if (!restaurantId) return;
 
     console.log(`[AdminGuard] Monitoring for new messages for: ${restaurantId}`);
     
-    // We only want to notify for messages created AFTER the staff opened the dashboard
     const startTime = new Date();
 
     const q = query(
       collection(db, 'messages'),
-      where('restaurantId', '==', restaurantId),
-      where('sender', '==', 'customer')
+      where('restaurantId', '==', restaurantId)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      // Check if any of the changes are new additions
       const newMessages = snapshot.docChanges().filter(change => {
         if (change.type === 'added') {
           const data = change.doc.data();
+          // Filter for customer messages here to avoid composite index requirement
+          if (data.sender !== 'customer') return false;
+          
           const createdAt = data.createdAt?.toDate?.() || new Date();
           return createdAt > startTime;
         }
@@ -107,21 +112,17 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
       });
 
       if (newMessages.length > 0) {
-        console.log(`[AdminGuard] ${newMessages.length} new customer messages!`);
-        
-        // 1. Update UI dot
-        if (pathname !== '/admin/chat') {
+        // Only notify if we are NOT on the chat page
+        if (pathnameRef.current !== '/admin/chat') {
           setHasNewMessages(true);
+          const audio = new Audio(BELL_SOUND);
+          audio.play().catch(e => console.warn("Sound play blocked by browser. Interaction required.", e));
         }
-
-        // 2. Play sound (Bell)
-        const audio = new Audio(BELL_SOUND);
-        audio.play().catch(e => console.warn("Sound play blocked by browser:", e));
       }
     });
 
     return () => unsubscribe();
-  }, [authorized, ridParam, pathname]);
+  }, [authorized, ridParam]);
 
   // During SSR or until mounted, show a loader to prevent any flash
   if (!hasMounted || (!authorized && pathname !== '/admin/login')) {
