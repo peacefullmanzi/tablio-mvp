@@ -84,7 +84,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
     const restaurantId = getRestaurantId();
     if (!restaurantId) return;
 
-    console.log(`[AdminGuard] Monitoring for new messages...`);
+    console.log(`[AdminGuard] Monitoring for new messages for: ${restaurantId}`);
     
     // We only want to notify for messages created AFTER the staff opened the dashboard
     const startTime = new Date();
@@ -121,7 +121,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
     });
 
     return () => unsubscribe();
-  }, [authorized, restaurantId, pathname]);
+  }, [authorized, ridParam, pathname]);
 
   // During SSR or until mounted, show a loader to prevent any flash
   if (!hasMounted || (!authorized && pathname !== '/admin/login')) {

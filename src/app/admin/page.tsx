@@ -21,7 +21,7 @@ function AdminContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const [showCompleted, setShowCompleted] = useState(false);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [messageCounts, setMessageCounts] = useState<Record<string, number>>({});
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
@@ -300,7 +300,7 @@ function AdminContent() {
         </div>
       </main>
 
-      <audio ref={audioRef} src="https://assets.mixkit.co/active_storage/sfx/2857/2857-preview.mp3" preload="auto" />
+      <audio ref={audioRef} src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3" preload="auto" />
     </div>
   );
 }
