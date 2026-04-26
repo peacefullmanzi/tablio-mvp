@@ -16,6 +16,7 @@ export async function POST(request: Request) {
     
     const currentPin = body.currentPin as string;
     const newPin = body.newPin as string;
+    const pinType = (body.pinType as string) || 'manager'; // 'manager' or 'staff'
     const restaurantId = body.restaurantId as string;
     const now = new Date();
 
@@ -34,20 +35,24 @@ export async function POST(request: Request) {
     }
 
     // 3. Verify Current PIN for this specific restaurant
-    const isCurrentValid = await validateAdminPin(currentPin, restaurantId);
+    const { isValid, role } = await validateAdminPin(currentPin, restaurantId);
 
-    if (!isCurrentValid) {
-      return NextResponse.json({ error: 'Unauthorized: Invalid current PIN' }, { status: 401 });
+    if (!isValid || role !== 'manager') {
+      return NextResponse.json({ error: 'Unauthorized: Invalid current PIN or insufficient permissions' }, { status: 401 });
     }
 
     // 4. Hash New PIN for Secure Storage
     const hashedPin = hashPin(newPin);
 
     // 5. Update PIN in Firestore for the specific restaurant
-    await adminDb.collection('restaurants').doc(restaurantId).update({
-      adminPinHash: hashedPin,
-      updated_at: now
-    });
+    const updateData: any = { updated_at: now };
+    if (pinType === 'staff') {
+      updateData.staffPinHash = hashedPin;
+    } else {
+      updateData.adminPinHash = hashedPin;
+    }
+
+    await adminDb.collection('restaurants').doc(restaurantId).update(updateData);
 
     return NextResponse.json({ success: true, message: 'PIN updated successfully' });
   } catch (error: unknown) {

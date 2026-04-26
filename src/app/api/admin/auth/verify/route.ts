@@ -53,7 +53,7 @@ export async function POST(request: Request) {
     }
 
     // 3. Validate PIN
-    const isValid = await validateAdminPin(pin, restaurantId);
+    const { isValid, role } = await validateAdminPin(pin, restaurantId);
 
     if (isValid) {
       // Clear failed attempts on success
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
 
       // Generate JWT Token
       const token = jwt.sign(
-        { restaurantId },
+        { restaurantId, role },
         process.env.JWT_SECRET || 'fallback-secret',
         { expiresIn: '7d' }
       );

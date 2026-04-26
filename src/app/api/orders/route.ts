@@ -100,6 +100,7 @@ export async function POST(request: Request) {
         id: clientItem.id,
         name: menuData.name,
         price: realPrice,
+        category: menuData.category || 'kitchen',
         quantity: clientItem.quantity,
       });
 

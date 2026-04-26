@@ -36,13 +36,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: pinValidation.error }, { status: 400 });
     }
 
-    // 4. Hash PIN for secure storage
+    // 4. Hash PINs for secure storage
     const adminPinHash = hashPin(pin);
+    let staffPinHash = null;
+    if (body.staffPin && typeof body.staffPin === 'string' && body.staffPin.length >= 6) {
+      staffPinHash = hashPin(body.staffPin);
+    }
 
     // 5. Create Restaurant in Firestore
     const restaurantData = {
       name,
       adminPinHash,
+      staffPinHash,
       createdAt: new Date(),
       failedAttempts: 0,
       lockUntil: null,

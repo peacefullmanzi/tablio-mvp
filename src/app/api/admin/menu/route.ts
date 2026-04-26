@@ -12,6 +12,9 @@ export async function POST(request: Request) {
     // 2. Validate JWT Authentication
     const auth = await requireAdminAuth(request);
     if ('error' in auth) return auth.error;
+    if (auth.role !== 'manager') {
+      return NextResponse.json({ error: 'Forbidden: Managers only' }, { status: 403 });
+    }
     const { restaurantId } = auth;
 
     // 4. Validate item data with strict type checks

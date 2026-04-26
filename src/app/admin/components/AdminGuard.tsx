@@ -88,6 +88,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
         const data = await response.json();
 
         if (response.ok && data.restaurantId === restaurantId) {
+          localStorage.setItem('tablio_role', data.role);
           setAuthorized(true);
         } else {
           console.warn(`[AdminGuard] Session mismatch or invalid. Expected: ${restaurantId}, Got: ${data.restaurantId}`);

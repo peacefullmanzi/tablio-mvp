@@ -3,6 +3,7 @@ export interface CartItem {
   name: string;
   price: number;
   quantity: number;
+  category?: string;
 }
 
 export type OrderStatus = 'pending' | 'accepted' | 'preparing' | 'ready' | 'completed';

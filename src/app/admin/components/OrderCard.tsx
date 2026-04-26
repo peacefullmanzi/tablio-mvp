@@ -17,6 +17,9 @@ interface OrderCardProps {
 export default function OrderCard({ order, onMessageCountChange }: OrderCardProps) {
   const [isUpdating, setIsUpdating] = useState(false);
 
+  const barItems = order.items.filter(item => item.category?.toLowerCase() === 'bar' || item.category?.toLowerCase() === 'drinks');
+  const kitchenItems = order.items.filter(item => !(item.category?.toLowerCase() === 'bar' || item.category?.toLowerCase() === 'drinks'));
+
   const updateStatus = async (newStatus: OrderStatus) => {
     const getRestaurantId = () => {
       if (typeof window === 'undefined') return '';
@@ -172,16 +175,36 @@ export default function OrderCard({ order, onMessageCountChange }: OrderCardProp
         </div>
 
         <div className="px-4 py-4 space-y-3">
-          {order.items.map((item, index) => (
-            <div key={index} className="flex justify-between text-sm py-1 border-b border-white/5 last:border-0">
-              <span className="text-primary-text font-bold">
-                <span className="text-accent mr-2">{item.quantity}x</span> 
-                {item.name}
-              </span>
-              <span className="text-secondary-text font-mono">{formatPrice(item.price * item.quantity)}</span>
+          {barItems.length > 0 && (
+            <div className="mb-4">
+              <div className="text-xs font-black text-secondary-text uppercase tracking-widest mb-2 pb-1 border-b border-white/5">Bar Orders</div>
+              {barItems.map((item, index) => (
+                <div key={index} className="flex justify-between text-sm py-1">
+                  <span className="text-primary-text font-bold">
+                    <span className="text-accent mr-2">{item.quantity}x</span> 
+                    {item.name}
+                  </span>
+                  <span className="text-secondary-text font-mono">{formatPrice(item.price * item.quantity)}</span>
+                </div>
+              ))}
             </div>
-          ))}
-          <div className="pt-2 flex justify-between items-center">
+          )}
+
+          {kitchenItems.length > 0 && (
+            <div className="mb-4">
+              <div className="text-xs font-black text-secondary-text uppercase tracking-widest mb-2 pb-1 border-b border-white/5">Kitchen Orders</div>
+              {kitchenItems.map((item, index) => (
+                <div key={index} className="flex justify-between text-sm py-1">
+                  <span className="text-primary-text font-bold">
+                    <span className="text-orange-500 mr-2">{item.quantity}x</span> 
+                    {item.name}
+                  </span>
+                  <span className="text-secondary-text font-mono">{formatPrice(item.price * item.quantity)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="pt-2 border-t border-white/5 flex justify-between items-center">
             <span className="text-secondary-text text-xs uppercase tracking-widest font-black">Total</span>
             <span className="text-lg font-black text-accent">{formatPrice(order.total)}</span>
           </div>

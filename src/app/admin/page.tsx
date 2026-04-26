@@ -42,24 +42,7 @@ function AdminContent() {
     setRefreshKey(prev => prev + 1);
   };
 
-  const handleClearHistory = async () => {
-    const completedOrders = orders.filter(o => o.status === 'completed');
-    if (completedOrders.length === 0 || !confirm(`Delete all ${completedOrders.length} completed orders? This cannot be undone.`)) return;
 
-    try {
-      if (!restaurantId) return;
-      const response = await adminFetch('/api/admin/orders/clear-history', {
-        method: 'POST',
-        body: JSON.stringify({ restaurantId })
-      });
-
-      if (!response.ok) throw new Error('Failed to clear history');
-      alert("History cleared successfully!");
-    } catch (error) {
-      console.error(error);
-      alert("Failed to clear history.");
-    }
-  };
 
   // Sync restaurantId from URL or Storage
   useEffect(() => {
@@ -254,17 +237,7 @@ function AdminContent() {
                 <span className="hidden sm:inline">Alerts: {notificationsEnabled ? 'ON' : 'OFF'}</span>
               </motion.button>
 
-              {showCompleted && filteredOrders.length > 0 && (
-                <motion.button 
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleClearHistory}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl border border-red-500/20 transition-all text-sm font-bold"
-                >
-                  <Trash2 size={18} />
-                  <span className="hidden sm:inline">Clear History</span>
-                </motion.button>
-              )}
+
             </div>
           </div>
         </div>

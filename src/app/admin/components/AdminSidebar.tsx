@@ -25,14 +25,21 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: AdminSideb
     return params.get('rid') || localStorage.getItem('tablio_rid') || '';
   };
 
+  const getRole = () => {
+    if (typeof window === 'undefined') return 'staff';
+    return localStorage.getItem('tablio_role') || 'staff';
+  };
+
   const restaurantId = getRestaurantId();
+  const role = getRole();
 
   const navItems = [
-    { label: 'Dashboard', icon: LayoutDashboard, href: `/admin?rid=${restaurantId}` },
-    { label: 'Menu Manager', icon: Utensils, href: `/admin/menu?rid=${restaurantId}` },
-    { label: 'Support Chat', icon: MessageCircle, href: `/admin/chat?rid=${restaurantId}` },
-    { label: 'Live Menu', icon: ExternalLink, href: `/r/${restaurantId}`, isExternal: true },
-  ];
+    { label: 'Dashboard', icon: LayoutDashboard, href: `/admin?rid=${restaurantId}`, roles: ['manager', 'staff'] },
+    { label: 'Sales Summary', icon: LayoutDashboard, href: `/admin/sales?rid=${restaurantId}`, roles: ['manager'] },
+    { label: 'Menu Manager', icon: Utensils, href: `/admin/menu?rid=${restaurantId}`, roles: ['manager'] },
+    { label: 'Support Chat', icon: MessageCircle, href: `/admin/chat?rid=${restaurantId}`, roles: ['manager', 'staff'] },
+    { label: 'Live Menu', icon: ExternalLink, href: `/r/${restaurantId}`, isExternal: true, roles: ['manager', 'staff'] },
+  ].filter(item => item.roles.includes(role));
 
   return (
     <>

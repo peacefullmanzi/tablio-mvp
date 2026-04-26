@@ -17,6 +17,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const [currentPin, setCurrentPin] = useState('');
   const [newPin, setNewPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
+  const [pinType, setPinType] = useState<'manager' | 'staff'>('manager');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -70,14 +71,16 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     try {
       const response = await adminFetch('/api/admin/settings/pin', {
         method: 'POST',
-        body: JSON.stringify({ currentPin, newPin, restaurantId })
+        body: JSON.stringify({ currentPin, newPin, pinType, restaurantId })
       });
 
       const data = await response.json();
 
       if (response.ok) {
         setSuccess(true);
-        localStorage.setItem(`tablio_admin_auth_${restaurantId}`, newPin);
+        if (pinType === 'manager') {
+          localStorage.setItem(`tablio_admin_auth_${restaurantId}`, newPin);
+        }
         setTimeout(() => {
           onClose();
           setSuccess(false);
@@ -212,8 +215,29 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               ) : (
                 <>
                   <div className="space-y-4">
+                    <div className="flex bg-white/5 p-1 rounded-xl w-fit">
+                      <button
+                        type="button"
+                        onClick={() => setPinType('manager')}
+                        className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                          pinType === 'manager' ? 'bg-accent text-background shadow-lg' : 'text-secondary-text hover:text-white'
+                        }`}
+                      >
+                        Manager PIN
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPinType('staff')}
+                        className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                          pinType === 'staff' ? 'bg-accent text-background shadow-lg' : 'text-secondary-text hover:text-white'
+                        }`}
+                      >
+                        Staff PIN
+                      </button>
+                    </div>
+
                     <div>
-                      <label className="block text-xs font-black text-secondary-text uppercase tracking-widest mb-2 ml-1">Current PIN</label>
+                      <label className="block text-xs font-black text-secondary-text uppercase tracking-widest mb-2 ml-1">Current Manager PIN</label>
                       <input
                         type="password"
                         maxLength={10}
@@ -223,11 +247,12 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         placeholder="****"
                         required
                       />
+                      <p className="text-[10px] text-secondary-text mt-2 ml-1 uppercase font-bold tracking-tight">Required to authorize this change.</p>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-black text-secondary-text uppercase tracking-widest mb-2 ml-1">New PIN</label>
+                        <label className="block text-xs font-black text-secondary-text uppercase tracking-widest mb-2 ml-1">New {pinType === 'manager' ? 'Manager' : 'Staff'} PIN</label>
                         <input
                           type="password"
                           maxLength={10}

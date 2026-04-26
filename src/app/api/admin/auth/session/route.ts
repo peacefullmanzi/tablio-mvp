@@ -8,7 +8,8 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ 
       success: true, 
-      restaurantId: auth.restaurantId 
+      restaurantId: auth.restaurantId,
+      role: auth.role
     });
   } catch (error: unknown) {
     console.error('[SessionAuth] Error:', error);

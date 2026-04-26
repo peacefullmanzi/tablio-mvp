@@ -73,7 +73,7 @@ export async function requireAdminPin(
   }
 
   // Pass restaurantId to the validator to support multi-tenant PINs
-  const isValid = await validateAdminPin(pin, typeof restaurantId === 'string' ? restaurantId : undefined);
+  const { isValid, role } = await validateAdminPin(pin, typeof restaurantId === 'string' ? restaurantId : undefined);
   if (!isValid) {
     return NextResponse.json(
       { error: 'Unauthorized: Invalid PIN' },
@@ -159,7 +159,7 @@ export function requireValidStatus(
  */
 export async function requireAdminAuth(
   request: Request
-): Promise<{ restaurantId: string } | { error: NextResponse }> {
+): Promise<{ restaurantId: string, role: string } | { error: NextResponse }> {
   const authHeader = request.headers.get('Authorization');
   
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -177,7 +177,7 @@ export async function requireAdminAuth(
     const decoded = jwt.verify(
       token,
       process.env.JWT_SECRET || 'fallback-secret'
-    ) as { restaurantId: string };
+    ) as { restaurantId: string, role?: string };
 
     if (!decoded.restaurantId) {
       return {
@@ -188,7 +188,7 @@ export async function requireAdminAuth(
       };
     }
 
-    return { restaurantId: decoded.restaurantId };
+    return { restaurantId: decoded.restaurantId, role: decoded.role || 'manager' };
   } catch (error) {
     return {
       error: NextResponse.json(

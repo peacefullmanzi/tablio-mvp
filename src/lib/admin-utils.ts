@@ -5,38 +5,46 @@ import bcrypt from 'bcryptjs';
  * Validates the admin PIN against the stored value.
  * Supports multi-tenant restaurant PINs and global fallback.
  */
-export async function validateAdminPin(pin: string, restaurantId?: string): Promise<boolean> {
-  if (!pin) return false;
+export async function validateAdminPin(pin: string, restaurantId?: string): Promise<{ isValid: boolean, role: 'manager' | 'staff' }> {
+  if (!pin) return { isValid: false, role: 'staff' };
 
-  let storedPin = process.env.NEXT_PUBLIC_ADMIN_PIN || "123456";
+  let adminStoredPin = process.env.NEXT_PUBLIC_ADMIN_PIN || "123456";
+  let staffStoredPin = "";
   
   try {
     // 1. Try to fetch from the specific restaurant record first
     if (restaurantId) {
       const rDoc = await adminDb.collection('restaurants').doc(restaurantId).get();
-      if (rDoc.exists && rDoc.data()?.adminPinHash) {
-        storedPin = rDoc.data()?.adminPinHash;
+      if (rDoc.exists) {
+        if (rDoc.data()?.adminPinHash) adminStoredPin = rDoc.data()?.adminPinHash;
+        if (rDoc.data()?.staffPinHash) staffStoredPin = rDoc.data()?.staffPinHash;
       }
     } else {
       // 2. Global fallback (for legacy or setup)
       const configDoc = await adminDb.collection('settings').doc('config').get();
       if (configDoc.exists && configDoc.data()?.adminPin) {
-        storedPin = configDoc.data()?.adminPin;
+        adminStoredPin = configDoc.data()?.adminPin;
       }
     }
   } catch (err) {
     console.warn('[validateAdminPin] Failed to fetch PIN, using fallback:', err);
   }
 
-  // Check if stored PIN is hashed (bcrypt hashes start with $2a$ or $2b$)
-  const isHashed = storedPin.startsWith('$2a$') || storedPin.startsWith('$2b$');
-
-  if (isHashed) {
-    return bcrypt.compareSync(pin, storedPin);
+  // Check Admin PIN first
+  const isAdminHashed = adminStoredPin.startsWith('$2a$') || adminStoredPin.startsWith('$2b$');
+  if (isAdminHashed ? bcrypt.compareSync(pin, adminStoredPin) : pin === adminStoredPin) {
+    return { isValid: true, role: 'manager' };
   }
 
-  // Fallback for legacy plain text PINs
-  return pin === storedPin;
+  // Check Staff PIN if provided
+  if (staffStoredPin) {
+    const isStaffHashed = staffStoredPin.startsWith('$2a$') || staffStoredPin.startsWith('$2b$');
+    if (isStaffHashed ? bcrypt.compareSync(pin, staffStoredPin) : pin === staffStoredPin) {
+      return { isValid: true, role: 'staff' };
+    }
+  }
+
+  return { isValid: false, role: 'staff' };
 }
 
 /**
