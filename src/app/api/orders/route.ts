@@ -64,7 +64,7 @@ export async function POST(request: Request) {
       itemIds.map((id: string) => adminDb.collection('menus').doc(id).get())
     );
 
-    const verifiedItems: { id: string; name: string; price: number; quantity: number }[] = [];
+    const verifiedItems: { id: string; name: string; price: number; quantity: number; category?: string }[] = [];
     let serverTotal = 0;
 
     for (let i = 0; i < clientItems.length; i++) {
