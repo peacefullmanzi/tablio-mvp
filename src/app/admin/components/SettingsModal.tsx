@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Shield, Check, AlertCircle, Loader2, QrCode, Download, Printer } from 'lucide-react';
+import { X, Shield, Check, AlertCircle, Loader2, QrCode, Download, Printer, FileText } from 'lucide-react';
+import { jsPDF } from 'jspdf';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { adminFetch } from '@/lib/api-client';
@@ -134,23 +135,32 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=1000x1000&data=${encodeURIComponent(menuUrl)}&margin=10`;
 
     qrImg.onload = () => {
+      // Draw QR to canvas first for high-res source
       ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
 
       // Footer branding
       ctx.textAlign = 'right';
       ctx.font = 'italic 700 40px Inter, sans-serif';
-      ctx.fillStyle = '#10B981'; // Tablio Accent
+      ctx.fillStyle = '#10B981';
       ctx.fillText('tablio', width - 80, height - 80);
       
       ctx.fillStyle = '#999999';
       ctx.font = '500 30px Inter, sans-serif';
       ctx.fillText('DIGITAL MENU SYSTEM', width - 80, height - 130);
 
-      // Final step: Download
-      const link = document.createElement('a');
-      link.download = `${restaurantName.toLowerCase().replace(/\s+/g, '-')}-qr-card.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
+      // --- PDF GENERATION ---
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a6'
+      });
+
+      const imgData = canvas.toDataURL('image/png', 1.0);
+      
+      // A6 is roughly 105 x 148 mm
+      pdf.addImage(imgData, 'PNG', 0, 0, 105, 148);
+      
+      pdf.save(`${restaurantName.toLowerCase().replace(/\s+/g, '-')}-qr-card.pdf`);
       setIsDownloading(false);
     };
   };
@@ -323,8 +333,8 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                       disabled={isDownloading}
                       className="w-full bg-accent text-background font-black py-4 rounded-2xl flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-accent/20 disabled:opacity-50"
                     >
-                      {isDownloading ? <Loader2 className="animate-spin" size={20} /> : <Download size={20} />}
-                      DOWNLOAD AS IMAGE
+                      {isDownloading ? <Loader2 className="animate-spin" size={20} /> : <FileText size={20} />}
+                      DOWNLOAD AS PDF
                     </button>
                     <button
                       onClick={() => window.print()}
