@@ -4,9 +4,11 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, Utensils, Settings, LogOut, ChevronLeft, ChevronRight, ExternalLink, MessageCircle } from 'lucide-react';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store';
 import SettingsModal from './SettingsModal';
+import { adminFetch } from '@/lib/api-client';
+import { ShieldCheck, UserCircle } from 'lucide-react';
 
 interface AdminSidebarProps {
   isCollapsed: boolean;
@@ -17,7 +19,23 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: AdminSideb
   const pathname = usePathname();
   const router = useRouter();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [restaurantName, setRestaurantName] = useState('Tablio OS');
   const { hasNewMessages, setHasNewMessages } = useStore();
+
+  useEffect(() => {
+    const fetchInfo = async () => {
+      try {
+        const response = await adminFetch('/api/admin/restaurant-info');
+        const data = await response.json();
+        if (data.success) {
+          setRestaurantName(data.name);
+        }
+      } catch (err) {
+        console.error("Error fetching info:", err);
+      }
+    };
+    fetchInfo();
+  }, []);
 
   const getRestaurantId = () => {
     if (typeof window === 'undefined') return '';
@@ -65,7 +83,7 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: AdminSideb
         <div className={`p-6 border-b border-white/10 flex items-center gap-3 ${isCollapsed ? 'lg:justify-center lg:px-0' : ''}`}>
           <Image src="/logo.png" alt="Tablio Logo" width={48} height={48} className="h-10 w-auto object-contain shrink-0" />
           {!isCollapsed && (
-            <h1 className="text-xl font-black text-primary-text tracking-tight whitespace-nowrap">Tablio OS</h1>
+            <h1 className="text-xl font-black text-primary-text tracking-tight whitespace-nowrap overflow-hidden text-ellipsis">{restaurantName}</h1>
           )}
         </div>
 
@@ -105,6 +123,26 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: AdminSideb
               </Link>
             );
           })}
+
+          <div className="h-px bg-white/5 my-4" />
+          
+          <button
+            onClick={() => {
+              const rid = getRestaurantId();
+              // Clear current session to force re-auth
+              localStorage.removeItem('tablio_token');
+              localStorage.removeItem(`tablio_admin_auth_${rid}`);
+              router.push(`/admin/login${rid ? `?rid=${rid}` : ''}`);
+            }}
+            className={`w-full flex items-center px-4 py-3 rounded-xl font-bold transition-all ${
+              role === 'manager' 
+                ? 'text-blue-400 hover:bg-blue-400/10' 
+                : 'text-purple-400 hover:bg-purple-400/10'
+            } ${isCollapsed ? 'lg:justify-center' : 'gap-3'}`}
+          >
+            {role === 'manager' ? <UserCircle size={20} /> : <ShieldCheck size={20} />}
+            {!isCollapsed && <span>Switch to {role === 'manager' ? 'Staff' : 'Manager'}</span>}
+          </button>
         </nav>
 
         <div className="p-4 border-t border-white/10 space-y-2 bg-background/30">

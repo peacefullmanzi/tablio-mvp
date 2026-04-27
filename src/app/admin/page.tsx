@@ -25,6 +25,8 @@ function AdminContent() {
   const [messageCounts, setMessageCounts] = useState<Record<string, number>>({});
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
+  const [restaurantName, setRestaurantName] = useState('Admin');
+  const [role, setRole] = useState<'manager' | 'staff'>('staff');
 
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const prevOrderCount = useRef<number | null>(null);
@@ -61,6 +63,21 @@ function AdminContent() {
       console.log("[AdminPage] Waiting for restaurantId...");
       return;
     }
+
+    const fetchInfo = async () => {
+      try {
+        const response = await adminFetch('/api/admin/restaurant-info');
+        const data = await response.json();
+        if (data.success) {
+          setRestaurantName(data.name);
+          setRole(data.role);
+        }
+      } catch (err) {
+        console.error("Error fetching restaurant info:", err);
+      }
+    };
+
+    fetchInfo();
 
     console.log(`[AdminPage] Starting real-time listener for: ${restaurantId}`);
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -153,10 +170,19 @@ function AdminContent() {
                   animate={{ x: 0, opacity: 1 }}
                   className="text-2xl lg:text-3xl font-black text-primary-text tracking-tight flex items-center gap-3"
                 >
-                  Admin Control Center
-                  <span className="bg-accent/10 text-accent text-xs px-3 py-1 rounded-full border border-accent/20">
-                    {filteredOrders.length}
-                  </span>
+                  {restaurantName}
+                  <div className="flex items-center gap-2">
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
+                      role === 'manager' 
+                        ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' 
+                        : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                    }`}>
+                      {role === 'manager' ? 'Manager Mode' : 'Staff Mode'}
+                    </span>
+                    <span className="bg-accent/10 text-accent text-xs px-3 py-1 rounded-full border border-accent/20">
+                      {filteredOrders.length} Orders
+                    </span>
+                  </div>
                 </motion.h1>
                 <div className="flex items-center gap-2 mt-1">
                   <p className="text-secondary-text text-sm font-medium hidden lg:block">Real-time table order management</p>

@@ -17,9 +17,25 @@ export default function SalesSummaryPage() {
   const [data, setData] = useState<SalesData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [restaurantName, setRestaurantName] = useState('Admin');
+  const [role, setRole] = useState<'manager' | 'staff'>('manager');
   const { isCollapsed, setIsCollapsed } = useSidebar();
 
   useEffect(() => {
+    const fetchInfo = async () => {
+      try {
+        const response = await adminFetch('/api/admin/restaurant-info');
+        const data = await response.json();
+        if (data.success) {
+          setRestaurantName(data.name);
+          setRole(data.role);
+        }
+      } catch (err) {
+        console.error("Error fetching info:", err);
+      }
+    };
+    fetchInfo();
+
     const fetchSales = async () => {
       try {
         const response = await adminFetch('/api/admin/sales-summary');
@@ -73,7 +89,16 @@ export default function SalesSummaryPage() {
             <Menu size={24} />
           </button>
           <h1 className="text-2xl lg:text-3xl font-black text-primary-text tracking-tight flex items-center gap-3">
-            Sales Summary
+            {restaurantName}
+            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
+              role === 'manager' 
+                ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' 
+                : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+            }`}>
+              {role === 'manager' ? 'Manager Mode' : 'Staff Mode'}
+            </span>
+            <span className="text-secondary-text/30 mx-2 text-sm">|</span>
+            <span className="text-lg">Sales Summary</span>
           </h1>
         </div>
       </header>
