@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { X, Save } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { X, Save, Plus, Loader2 } from 'lucide-react';
 import { MenuItem } from '@/types/menu';
 import { adminFetch } from '@/lib/api-client';
 
@@ -16,19 +16,74 @@ export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem 
   const [name, setName] = useState(editingItem?.name || '');
   const [price, setPrice] = useState(editingItem?.price.toString() || '');
   const [category, setCategory] = useState(editingItem?.category || '');
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
+  const [categories, setCategories] = useState<{id: string, name: string}[]>([]);
   const [image, setImage] = useState(editingItem?.image || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFetchingCategories, setIsFetchingCategories] = useState(false);
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+
+  const getRestaurantId = () => {
+    if (typeof window === 'undefined') return '';
+    const params = new URLSearchParams(window.location.search);
+    return params.get('rid') || localStorage.getItem('tablio_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID || '';
+  };
+
+  const restaurantId = getRestaurantId();
+
+  useEffect(() => {
+    if (isOpen && restaurantId) {
+      fetchCategories();
+    }
+  }, [isOpen, restaurantId]);
+
+  const fetchCategories = async () => {
+    setIsFetchingCategories(true);
+    try {
+      const response = await adminFetch(`/api/categories/get`);
+      const data = await response.json();
+      if (data.success) {
+        setCategories(data.categories);
+        if (data.categories.length === 0 && !editingItem) {
+          setShowNewCategoryInput(true);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    } finally {
+      setIsFetchingCategories(false);
+    }
+  };
+
+  const handleCreateCategory = async () => {
+    if (!newCategoryName.trim()) return;
+    setIsCreatingCategory(true);
+    try {
+      const response = await adminFetch('/api/categories/create', {
+        method: 'POST',
+        body: JSON.stringify({ name: newCategoryName })
+      });
+      const data = await response.json();
+      if (data.success) {
+        await fetchCategories();
+        setCategory(data.name);
+        setShowNewCategoryInput(false);
+        setNewCategoryName('');
+      } else {
+        alert(data.error || "Failed to create category");
+      }
+    } catch (error) {
+      alert("Error creating category");
+    } finally {
+      setIsCreatingCategory(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !price || !category) return;
 
-    const getRestaurantId = () => {
-      const params = new URLSearchParams(window.location.search);
-      return params.get('rid') || localStorage.getItem('tablio_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID;
-    };
-
-    const restaurantId = getRestaurantId();
     if (!restaurantId) {
       alert('Configuration error: restaurantId not set. Cannot save item.');
       return;
@@ -108,14 +163,53 @@ export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem 
             </div>
             <div>
               <label className="block text-sm font-medium text-secondary-text mb-1">Category</label>
-              <input
-                type="text"
-                required
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                placeholder="e.g. Food"
-                className="w-full bg-background border border-white/10 rounded-lg px-4 py-2.5 text-primary-text focus:outline-none focus:border-accent transition-colors"
-              />
+              {showNewCategoryInput ? (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    required
+                    autoFocus
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    placeholder="Category name"
+                    className="flex-1 bg-background border border-white/10 rounded-lg px-4 py-2.5 text-primary-text focus:outline-none focus:border-accent transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleCreateCategory}
+                    disabled={isCreatingCategory}
+                    className="p-2.5 bg-accent text-background rounded-lg hover:bg-emerald-400 disabled:opacity-50"
+                  >
+                    {isCreatingCategory ? <Loader2 className="animate-spin" size={18} /> : <Plus size={18} />}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowNewCategoryInput(false)}
+                    className="p-2.5 bg-white/5 text-secondary-text rounded-lg hover:bg-white/10"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+              ) : (
+                <select
+                  required
+                  value={category}
+                  onChange={(e) => {
+                    if (e.target.value === 'ADD_NEW') {
+                      setShowNewCategoryInput(true);
+                    } else {
+                      setCategory(e.target.value);
+                    }
+                  }}
+                  className="w-full bg-background border border-white/10 rounded-lg px-4 py-2.5 text-primary-text focus:outline-none focus:border-accent transition-colors appearance-none"
+                >
+                  <option value="">Select Category</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.name}>{cat.name}</option>
+                  ))}
+                  <option value="ADD_NEW" className="text-accent font-bold text-lg">+ Add new category</option>
+                </select>
+              )}
             </div>
           </div>
 
