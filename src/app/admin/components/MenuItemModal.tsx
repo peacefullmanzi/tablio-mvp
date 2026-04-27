@@ -10,9 +10,10 @@ interface MenuItemModalProps {
   onClose: () => void;
   onSuccess: () => void;
   editingItem?: MenuItem | null;
+  existingItems?: MenuItem[];
 }
 
-export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem }: MenuItemModalProps) {
+export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem, existingItems = [] }: MenuItemModalProps) {
   const [name, setName] = useState(editingItem?.name || '');
   const [price, setPrice] = useState(editingItem?.price.toString() || '');
   const [category, setCategory] = useState(editingItem?.category || '');
@@ -44,8 +45,16 @@ export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem 
       const response = await adminFetch(`/api/categories/get`);
       const data = await response.json();
       if (data.success) {
-        setCategories(data.categories);
-        if (data.categories.length === 0 && !editingItem) {
+        // Merge API categories with existing item categories for complete list
+        const apiCategories = data.categories.map((c: any) => c.name);
+        const itemCategories = existingItems.map(item => item.category).filter(Boolean);
+        const allUnique = Array.from(new Set([...apiCategories, ...itemCategories]))
+          .filter(name => name !== 'ADD_NEW')
+          .map(name => ({ id: name, name }));
+          
+        setCategories(allUnique as {id: string, name: string}[]);
+        
+        if (allUnique.length === 0 && !editingItem) {
           setShowNewCategoryInput(true);
         }
       }

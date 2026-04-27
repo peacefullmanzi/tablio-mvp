@@ -81,25 +81,32 @@ export default function SalesSummaryPage() {
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-background overflow-y-auto">
       <header className="bg-background/80 backdrop-blur-xl border-b border-white/5 pt-6 pb-6 sticky top-0 z-10">
-        <div className="container mx-auto px-6 flex items-center gap-4">
-          <button 
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-2 -ml-2 lg:hidden text-primary-text hover:bg-white/5 rounded-lg"
-          >
-            <Menu size={24} />
-          </button>
-          <h1 className="text-2xl lg:text-3xl font-black text-primary-text tracking-tight flex items-center gap-3">
-            {restaurantName}
-            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
-              role === 'manager' 
-                ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' 
-                : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-            }`}>
-              {role === 'manager' ? 'Manager Mode' : 'Staff Mode'}
-            </span>
-            <span className="text-secondary-text/30 mx-2 text-sm">|</span>
-            <span className="text-lg">Sales Summary</span>
-          </h1>
+        <div className="container mx-auto px-6">
+          <div className="flex items-center gap-4 min-w-0">
+            <button 
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="p-2 -ml-2 lg:hidden text-primary-text hover:bg-white/5 rounded-lg shrink-0"
+            >
+              <Menu size={24} />
+            </button>
+            <div className="min-w-0">
+              <div className="flex items-center gap-3 flex-wrap">
+                <h1 className="text-xl lg:text-2xl font-black text-primary-text tracking-tight truncate">
+                  {restaurantName}
+                </h1>
+                <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border shrink-0 ${
+                  role === 'manager' 
+                    ? 'bg-purple-500/20 text-purple-400 border-purple-500/30' 
+                    : 'bg-blue-500/20 text-blue-400 border-blue-500/30 shadow-[0_0_10px_rgba(59,130,246,0.2)]'
+                }`}>
+                  {role === 'manager' ? 'Manager' : 'Staff Mode'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-secondary-text text-xs font-bold uppercase tracking-wider opacity-60">Sales Summary</span>
+              </div>
+            </div>
+          </div>
         </div>
       </header>
       

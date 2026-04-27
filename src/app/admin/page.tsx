@@ -150,45 +150,45 @@ function AdminContent() {
 
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-background">
+      {role === 'staff' && (
+        <div className="bg-blue-600 text-white py-1 px-4 text-[10px] font-black uppercase tracking-[0.2em] text-center shadow-lg z-50">
+          Staff Mode Active • Restricted Access
+        </div>
+      )}
       {/* Sticky Header */}
       <header className="bg-background/80 backdrop-blur-xl border-b border-white/5 pt-6 pb-6 sticky top-0 z-10">
         <div className="container mx-auto px-6">
-          {/* Top Row: Title & Search */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-6">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-4 min-w-0">
               <motion.button 
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsCollapsed(!isCollapsed)}
-                className="p-2 -ml-2 lg:hidden text-primary-text hover:bg-white/5 rounded-lg"
+                className="p-2 -ml-2 lg:hidden text-primary-text hover:bg-white/5 rounded-lg shrink-0"
               >
                 <Menu size={24} />
               </motion.button>
-              <div>
-                <motion.h1 
-                  initial={{ x: -10, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  className="text-2xl lg:text-3xl font-black text-primary-text tracking-tight flex items-center gap-3"
-                >
-                  {restaurantName}
-                  <div className="flex items-center gap-2">
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
-                      role === 'manager' 
-                        ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' 
-                        : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                    }`}>
-                      {role === 'manager' ? 'Manager Mode' : 'Staff Mode'}
-                    </span>
-                    <span className="bg-accent/10 text-accent text-xs px-3 py-1 rounded-full border border-accent/20">
-                      {filteredOrders.length} Orders
-                    </span>
-                  </div>
-                </motion.h1>
-                <div className="flex items-center gap-2 mt-1">
-                  <p className="text-secondary-text text-sm font-medium hidden lg:block">Real-time table order management</p>
-                  <span className="text-[10px] text-secondary-text/30 font-mono uppercase tracking-widest bg-white/5 px-2 py-0.5 rounded">
-                    ID: {restaurantId || 'Disconnected'}
+              <div className="min-w-0">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <motion.h1 
+                    initial={{ x: -10, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    className="text-xl lg:text-2xl font-black text-primary-text tracking-tight truncate"
+                  >
+                    {restaurantName}
+                  </motion.h1>
+                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border shrink-0 ${
+                    role === 'manager' 
+                      ? 'bg-purple-500/20 text-purple-400 border-purple-500/30' 
+                      : 'bg-blue-500/20 text-blue-400 border-blue-500/30 shadow-[0_0_10px_rgba(59,130,246,0.2)]'
+                  }`}>
+                    {role === 'manager' ? 'Manager' : 'Staff Mode'}
                   </span>
+                </div>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <p className="text-secondary-text text-xs font-bold uppercase tracking-wider opacity-60">Dashboard</p>
+                  <span className="w-1 h-1 rounded-full bg-white/20" />
+                  <span className="text-accent text-xs font-bold">{filteredOrders.length} active</span>
                 </div>
               </div>
             </div>
@@ -196,15 +196,15 @@ function AdminContent() {
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="relative flex-1 max-w-md"
+              className="relative flex-1 max-w-sm"
             >
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text" size={18} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text" size={16} />
               <input 
                 type="text" 
-                placeholder="Search Table, Item, or ID..." 
+                placeholder="Search Table or Item..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:border-accent outline-none transition-all"
+                className="w-full bg-white/5 border border-white/10 rounded-xl pl-9 pr-4 py-2 text-sm focus:border-accent outline-none transition-all"
               />
             </motion.div>
           </div>
