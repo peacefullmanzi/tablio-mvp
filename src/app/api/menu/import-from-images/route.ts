@@ -44,17 +44,7 @@ export async function POST(request: Request) {
       };
     });
 
-    const promptText = `You are an expert at reading restaurant menus. Extract ALL menu items from these images.
-
-Return ONLY valid JSON (no markdown, no code blocks, no extra text). Format:
-{"items":[{"name":"Item Name","price":1000,"category":"category"}]}
-
-Rules:
-- "price" must be a number (e.g. 3500 not "3,500 FRW")
-- "category" should be descriptive (e.g. "drinks", "food", "dessert", "coffee", "cocktails")
-- If category is unclear, use "kitchen"
-- Do NOT hallucinate items - only extract what you can clearly read
-- Ignore decorative text, logos, and headers`;
+    const promptText = `Extract all menu items from these images. Return a JSON object with an "items" array. Each item has "name" (string), "price" (number), and "category" (string). If category is unclear use "kitchen". Prices must be numbers only. Do not hallucinate.`;
 
     // 4. Try models in order of preference
     const modelsToTry = [
@@ -87,6 +77,7 @@ Rules:
             generationConfig: {
               temperature: 0.1,
               maxOutputTokens: 4096,
+              responseMimeType: "application/json",
             }
           })
         });
