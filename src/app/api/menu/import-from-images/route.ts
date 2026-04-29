@@ -35,22 +35,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Free AI Service not configured' }, { status: 500 });
     }
 
-    // 3. Initialize Gemini
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
-
-    // Format images for Gemini
+    // 3. Call Google Gemini API via direct Fetch (v1 Stable)
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+    
     const imageParts = images.map(img => {
       const base64Data = img.split(',')[1] || img;
       return {
-        inlineData: {
-          data: base64Data,
-          mimeType: "image/jpeg"
+        inline_data: {
+          mime_type: "image/jpeg",
+          data: base64Data
         }
       };
     });
 
-    const prompt = `Extract all menu items from these images. Return ONLY a JSON object with an 'items' array. 
+    const promptText = `Extract all menu items from these images. Return ONLY a JSON object with an 'items' array. 
     Each item must have 'name' (string), 'price' (number), and 'category' (string). 
     If category is unclear, use 'kitchen'. Extract prices as numbers only (e.g. 15.50). 
     Do not hallucinate items. Ignore decorative text. Group similar items logically.
@@ -62,8 +60,27 @@ export async function POST(request: Request) {
       ]
     }`;
 
-    const result = await model.generateContent([prompt, ...imageParts]);
-    const responseText = result.response.text();
+    const response = await fetch(geminiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { text: promptText },
+            ...imageParts
+          ]
+        }]
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Gemini API Error:', errorData);
+      return NextResponse.json({ error: `AI Service Error: ${errorData.error?.message || 'Unknown error'}` }, { status: response.status });
+    }
+
+    const aiData = await response.json();
+    const responseText = aiData.candidates?.[0]?.content?.parts?.[0]?.text;
     
     if (!responseText) {
       return NextResponse.json({ error: 'AI returned an empty response' }, { status: 500 });
@@ -92,10 +109,6 @@ export async function POST(request: Request) {
 
   } catch (error: any) {
     console.error('[MenuImport Gemini] Detailed Error:', error);
-    // Return specific message for missing API key
-    if (!GEMINI_API_KEY) {
-      return NextResponse.json({ error: 'GEMINI_API_KEY is missing in Vercel settings.' }, { status: 500 });
-    }
     return NextResponse.json({ error: `AI Error: ${error.message || 'Unknown error'}` }, { status: 500 });
   }
 }
