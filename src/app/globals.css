@@ -51,3 +51,34 @@ body {
   background-color: var(--background);
   color: var(--primary-text);
 }
+
+/* ─── Custom Dark Scrollbar ─── */
+
+/* Firefox */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #10B981 #0F172A;
+}
+
+/* Chrome, Edge, Safari */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0F172A;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #10B98140;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #10B981;
+}
+
+::-webkit-scrollbar-corner {
+  background: #0F172A;
+}
