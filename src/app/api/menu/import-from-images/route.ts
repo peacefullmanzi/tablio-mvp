@@ -5,6 +5,9 @@ import { requireAdminAuth } from '@/lib/api-security';
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const model = "gemini-2.5-flash";
 
+// Extend Vercel timeout to 60 seconds (AI processing takes time)
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
   try {
     const auth = await requireAdminAuth(request);
@@ -61,7 +64,7 @@ export async function POST(request: Request) {
         }],
         generationConfig: {
           temperature: 0.1,
-          maxOutputTokens: 4096,
+          maxOutputTokens: 8192,
           responseMimeType: "application/json",
         }
       })
@@ -77,25 +80,32 @@ export async function POST(request: Request) {
     const responseText = aiData.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!responseText) {
-      return NextResponse.json({ error: 'AI returned an empty response' }, { status: 500 });
+      // Check for safety or other finish reasons
+      const finishReason = aiData.candidates?.[0]?.finishReason;
+      return NextResponse.json({ error: `AI returned empty. Reason: ${finishReason || 'unknown'}` }, { status: 500 });
     }
 
-    // 5. Parse JSON
-    let cleanJson = responseText
-      .replace(/,\s*]/g, ']')
-      .replace(/,\s*}/g, '}');
+    // 5. Parse JSON with safety
+    try {
+      let cleanJson = responseText
+        .replace(/,\s*]/g, ']')
+        .replace(/,\s*}/g, '}');
 
-    const parsed = JSON.parse(cleanJson);
-    const items = parsed.items || [];
-    const validatedItems = items
-      .filter((item: any) => item.name && (typeof item.price === 'number' || !isNaN(Number(item.price))))
-      .map((item: any) => ({
-        name: String(item.name).trim(),
-        price: Number(item.price),
-        category: String(item.category || 'kitchen').trim()
-      }));
+      const parsed = JSON.parse(cleanJson);
+      const items = parsed.items || [];
+      const validatedItems = items
+        .filter((item: any) => item.name && (typeof item.price === 'number' || !isNaN(Number(item.price))))
+        .map((item: any) => ({
+          name: String(item.name).trim(),
+          price: Number(item.price),
+          category: String(item.category || 'kitchen').trim()
+        }));
 
-    return NextResponse.json({ success: true, items: validatedItems });
+      return NextResponse.json({ success: true, items: validatedItems });
+    } catch (parseErr: any) {
+      console.error('[MenuImport] JSON parse failed. Raw:', responseText.substring(0, 500));
+      return NextResponse.json({ error: `JSON parse error: ${parseErr.message}` }, { status: 500 });
+    }
 
   } catch (error: any) {
     console.error('[MenuImport] Error:', error);
