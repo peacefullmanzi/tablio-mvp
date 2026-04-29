@@ -64,7 +64,7 @@ export async function POST(request: Request) {
         }],
         generationConfig: {
           temperature: 0.1,
-          maxOutputTokens: 65536,
+          maxOutputTokens: 16384,
           responseMimeType: "application/json",
         }
       })

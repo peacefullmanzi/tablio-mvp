@@ -70,22 +70,48 @@ export default function MenuImportModal({ isOpen, onClose, onSuccess }: MenuImpo
     if (images.length === 0) return;
     setIsProcessing(true);
     try {
-      const response = await adminFetch('/api/menu/import-from-images', {
-        method: 'POST',
-        body: JSON.stringify({ images })
-      });
-      const data = await response.json();
-      if (data.success) {
-        setExtractedItems(data.items.map((item: any, idx: number) => ({
-          ...item,
-          id: `extracted-${idx}-${Date.now()}`
-        })));
-      } else {
-        alert(data.error || "Failed to process images");
+      // Process images one at a time to avoid timeouts
+      const allItems: any[] = [];
+      
+      for (let i = 0; i < images.length; i++) {
+        const response = await adminFetch('/api/menu/import-from-images', {
+          method: 'POST',
+          body: JSON.stringify({ images: [images[i]] })
+        });
+        
+        const text = await response.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          alert(`Server returned invalid response for image ${i + 1}: ${text.substring(0, 200)}`);
+          return;
+        }
+
+        if (data.success) {
+          allItems.push(...data.items);
+        } else {
+          alert(`Error on image ${i + 1}: ${data.error}`);
+          return;
+        }
       }
-    } catch (error) {
+
+      // Deduplicate by name
+      const seen = new Set<string>();
+      const unique = allItems.filter(item => {
+        const key = item.name.toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+      setExtractedItems(unique.map((item: any, idx: number) => ({
+        ...item,
+        id: `extracted-${idx}-${Date.now()}`
+      })));
+    } catch (error: any) {
       console.error("Processing error:", error);
-      alert("An error occurred during processing");
+      alert(`Error: ${error.message || 'Network request failed. Please try again.'}`);
     } finally {
       setIsProcessing(false);
     }
