@@ -51,7 +51,8 @@ export async function POST(request: Request) {
       createdAt: new Date(),
       failedAttempts: 0,
       lockUntil: null,
-      status: 'active'
+      status: 'active',
+      hasUsedMenuImport: false
     };
 
     const docRef = await adminDb.collection('restaurants').add(restaurantData);

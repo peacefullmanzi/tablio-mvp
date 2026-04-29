@@ -20,7 +20,8 @@ export async function GET(request: Request) {
       success: true, 
       name: data.name,
       id: restaurantId,
-      role: auth.role
+      role: auth.role,
+      hasUsedMenuImport: data.hasUsedMenuImport || false
     });
   } catch (error: any) {
     console.error('[RestaurantInfo] Error:', error);

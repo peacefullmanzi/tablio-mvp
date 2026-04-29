@@ -5,7 +5,8 @@ import { collection, query, onSnapshot, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { MenuItem } from '@/types/menu';
 import MenuItemModal from '../components/MenuItemModal';
-import { Utensils, Plus, Edit2, Trash2, Search, Filter, LayoutDashboard, Menu } from 'lucide-react';
+import MenuImportModal from '../components/MenuImportModal';
+import { Utensils, Plus, Edit2, Trash2, Search, Filter, LayoutDashboard, Menu, Wand2, Sparkles } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 import Image from 'next/image';
 import { MenuItemSkeleton } from '../components/Skeleton';
@@ -28,6 +29,8 @@ function MenuContent() {
   const [activeCategory, setActiveCategory] = useState('All');
   const [restaurantName, setRestaurantName] = useState('Admin');
   const [role, setRole] = useState<'manager' | 'staff'>('manager');
+  const [hasUsedMenuImport, setHasUsedMenuImport] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   // Unified restaurantId logic
   const getRestaurantId = () => {
@@ -49,6 +52,7 @@ function MenuContent() {
         if (data.success) {
           setRestaurantName(data.name);
           setRole(data.role);
+          setHasUsedMenuImport(data.hasUsedMenuImport);
         }
       } catch (err) {
         console.error("Error fetching info:", err);
@@ -172,6 +176,16 @@ function MenuContent() {
                 />
               </div>
 
+              {!hasUsedMenuImport && (
+                <button
+                  onClick={() => setIsImportModalOpen(true)}
+                  className="flex items-center gap-2 px-5 py-2 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-xl text-sm font-black hover:bg-blue-500/20 transition-all active:scale-95"
+                >
+                  <Sparkles size={18} />
+                  <span className="hidden sm:inline">AI Import</span>
+                </button>
+              )}
+
               <button
                 onClick={openAdd}
                 className="flex items-center gap-2 px-5 py-2 bg-accent text-background rounded-xl text-sm font-black hover:bg-emerald-400 transition-all shadow-lg shadow-accent/20 active:scale-95"
@@ -278,6 +292,15 @@ function MenuContent() {
         onSuccess={() => {}} 
         editingItem={editingItem}
         existingItems={items}
+      />
+
+      <MenuImportModal 
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onSuccess={() => {
+          setHasUsedMenuImport(true);
+          // Snapshot listener will handle the items update
+        }}
       />
     </div>
   );
