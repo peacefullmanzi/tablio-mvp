@@ -109,14 +109,21 @@ Rules:
 
         console.log(`[MenuImport] Success with ${model.name}! Parsing response...`);
 
-        // Robust JSON extraction - find the JSON object in the response
+        // Robust JSON extraction and cleaning
         const jsonMatch = responseText.match(/\{[\s\S]*\}/);
         if (!jsonMatch) {
           errors.push(`${model.name}: no JSON found in response`);
           continue;
         }
 
-        const parsed = JSON.parse(jsonMatch[0]);
+        // Clean common AI JSON issues: trailing commas, comments
+        let cleanJson = jsonMatch[0]
+          .replace(/,\s*]/g, ']')     // trailing comma before ]
+          .replace(/,\s*}/g, '}')     // trailing comma before }
+          .replace(/\/\/.*$/gm, '')   // single-line comments
+          .replace(/\/\*[\s\S]*?\*\//g, ''); // multi-line comments
+
+        const parsed = JSON.parse(cleanJson);
         const items = parsed.items || [];
         const validatedItems = items
           .filter((item: any) => item.name && (typeof item.price === 'number' || !isNaN(Number(item.price))))
