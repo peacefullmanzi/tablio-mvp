@@ -35,80 +35,97 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Free AI Service not configured' }, { status: 500 });
     }
 
-    // 3. Call Google Gemini API via direct Fetch (v1 Stable)
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-    
-    const imageParts = images.map(img => {
-      const base64Data = img.split(',')[1] || img;
-      return {
-        inline_data: {
-          mime_type: "image/jpeg",
-          data: base64Data
-        }
-      };
-    });
+    // 3. Call Google Gemini API with Fallback Logic
+    const modelsToTry = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-1.5-flash-8b"];
+    let lastError = null;
 
-    const promptText = `Extract all menu items from these images. Return ONLY a JSON object with an 'items' array. 
-    Each item must have 'name' (string), 'price' (number), and 'category' (string). 
-    If category is unclear, use 'kitchen'. Extract prices as numbers only (e.g. 15.50). 
-    Do not hallucinate items. Ignore decorative text. Group similar items logically.
-    
-    JSON format:
-    {
-      "items": [
-        { "name": "Item Name", "price": 10.00, "category": "category name" }
-      ]
-    }`;
+    for (const modelName of modelsToTry) {
+      try {
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${GEMINI_API_KEY}`;
+        
+        const imageParts = images.map(img => {
+          const base64Data = img.split(',')[1] || img;
+          return {
+            inline_data: {
+              mime_type: "image/jpeg",
+              data: base64Data
+            }
+          };
+        });
 
-    const response = await fetch(geminiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{
-          parts: [
-            { text: promptText },
-            ...imageParts
+        const promptText = `Extract all menu items from these images. Return ONLY a JSON object with an 'items' array. 
+        Each item must have 'name' (string), 'price' (number), and 'category' (string). 
+        If category is unclear, use 'kitchen'. Extract prices as numbers only (e.g. 15.50). 
+        Do not hallucinate items. Ignore decorative text. Group similar items logically.
+        
+        JSON format:
+        {
+          "items": [
+            { "name": "Item Name", "price": 10.00, "category": "category name" }
           ]
-        }]
-      })
-    });
+        }`;
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Gemini API Error:', errorData);
-      return NextResponse.json({ error: `AI Service Error: ${errorData.error?.message || 'Unknown error'}` }, { status: response.status });
+        const response = await fetch(geminiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [
+                { text: promptText },
+                ...imageParts
+              ]
+            }]
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          // If 404, try next model
+          if (response.status === 404) {
+            console.warn(`Model ${modelName} not found, trying next...`);
+            lastError = errorData.error?.message || 'Not found';
+            continue;
+          }
+          throw new Error(errorData.error?.message || 'API Error');
+        }
+
+        const aiData = await response.json();
+        const responseText = aiData.candidates?.[0]?.content?.parts?.[0]?.text;
+        
+        if (!responseText) {
+          console.warn(`Model ${modelName} returned empty, trying next...`);
+          continue;
+        }
+
+        // Robust JSON extraction
+        let jsonString = responseText;
+        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          jsonString = jsonMatch[0];
+        }
+
+        const parsed = JSON.parse(jsonString);
+        const items = parsed.items || [];
+        const validatedItems = items.filter((item: any) => item.name && typeof item.price === 'number');
+
+        return NextResponse.json({ 
+          success: true, 
+          items: validatedItems,
+          modelUsed: modelName
+        });
+
+      } catch (err: any) {
+        lastError = err.message;
+        console.error(`Error with ${modelName}:`, err);
+        continue; // Try next model
+      }
     }
 
-    const aiData = await response.json();
-    const responseText = aiData.candidates?.[0]?.content?.parts?.[0]?.text;
-    
-    if (!responseText) {
-      return NextResponse.json({ error: 'AI returned an empty response' }, { status: 500 });
-    }
-
-    // Robust JSON extraction
-    let jsonString = responseText;
-    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      jsonString = jsonMatch[0];
-    }
-
-    try {
-      const parsed = JSON.parse(jsonString);
-      const items = parsed.items || [];
-      const validatedItems = items.filter((item: any) => item.name && typeof item.price === 'number');
-
-      return NextResponse.json({ 
-        success: true, 
-        items: validatedItems 
-      });
-    } catch (e) {
-      console.error('JSON Parse Error. Raw response:', responseText);
-      return NextResponse.json({ error: 'AI response was not in a valid format. Please try again.' }, { status: 500 });
-    }
+    // If we get here, all models failed
+    return NextResponse.json({ error: `All AI models failed. Last error: ${lastError}` }, { status: 500 });
 
   } catch (error: any) {
-    console.error('[MenuImport Gemini] Detailed Error:', error);
+    console.error('[MenuImport Gemini] General Error:', error);
     return NextResponse.json({ error: `AI Error: ${error.message || 'Unknown error'}` }, { status: 500 });
   }
 }
