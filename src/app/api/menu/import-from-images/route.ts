@@ -65,22 +65,38 @@ export async function POST(request: Request) {
     const result = await model.generateContent([prompt, ...imageParts]);
     const responseText = result.response.text();
     
-    // Clean JSON response (Gemini sometimes adds markdown blocks)
-    const jsonString = responseText.replace(/```json|```/g, '').trim();
-    const parsed = JSON.parse(jsonString);
+    if (!responseText) {
+      return NextResponse.json({ error: 'AI returned an empty response' }, { status: 500 });
+    }
 
-    // 4. Post-processing
-    const items = parsed.items || [];
-    const validatedItems = items.filter((item: any) => item.name && typeof item.price === 'number');
+    // Robust JSON extraction
+    let jsonString = responseText;
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      jsonString = jsonMatch[0];
+    }
 
-    return NextResponse.json({ 
-      success: true, 
-      items: validatedItems 
-    });
+    try {
+      const parsed = JSON.parse(jsonString);
+      const items = parsed.items || [];
+      const validatedItems = items.filter((item: any) => item.name && typeof item.price === 'number');
+
+      return NextResponse.json({ 
+        success: true, 
+        items: validatedItems 
+      });
+    } catch (e) {
+      console.error('JSON Parse Error. Raw response:', responseText);
+      return NextResponse.json({ error: 'AI response was not in a valid format. Please try again.' }, { status: 500 });
+    }
 
   } catch (error: any) {
-    console.error('[MenuImport Gemini] Error:', error);
-    return NextResponse.json({ error: 'Failed to process images with Free AI' }, { status: 500 });
+    console.error('[MenuImport Gemini] Detailed Error:', error);
+    // Return specific message for missing API key
+    if (!GEMINI_API_KEY) {
+      return NextResponse.json({ error: 'GEMINI_API_KEY is missing in Vercel settings.' }, { status: 500 });
+    }
+    return NextResponse.json({ error: `AI Error: ${error.message || 'Unknown error'}` }, { status: 500 });
   }
 }
 
