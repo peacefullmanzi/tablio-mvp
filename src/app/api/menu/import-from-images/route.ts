@@ -1,3 +1,4 @@
+// Fresh deployment trigger for multi-model fallback
 import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
 import { requireAdminAuth } from '@/lib/api-security';
