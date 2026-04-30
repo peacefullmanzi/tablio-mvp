@@ -39,10 +39,10 @@ export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem,
     }
   }, [isOpen, restaurantId]);
 
-  const fallbackCategories = [
-    { id: 'kitchen', name: 'kitchen' },
-    { id: 'bar', name: 'bar' }
-  ];
+  // Build fallback from existing menu items' categories
+  const fallbackCategories = Array.from(
+    new Set(existingItems.map(item => item.category).filter(Boolean))
+  ).map(name => ({ id: name, name }));
 
   const fetchCategories = async () => {
     setIsFetchingCategories(true);
