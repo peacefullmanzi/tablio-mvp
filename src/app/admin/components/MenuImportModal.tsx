@@ -70,48 +70,22 @@ export default function MenuImportModal({ isOpen, onClose, onSuccess }: MenuImpo
     if (images.length === 0) return;
     setIsProcessing(true);
     try {
-      // Process images one at a time to avoid timeouts
-      const allItems: any[] = [];
-      
-      for (let i = 0; i < images.length; i++) {
-        const response = await adminFetch('/api/menu/import-from-images', {
-          method: 'POST',
-          body: JSON.stringify({ images: [images[i]] })
-        });
-        
-        const text = await response.text();
-        let data;
-        try {
-          data = JSON.parse(text);
-        } catch {
-          alert(`Server returned invalid response for image ${i + 1}: ${text.substring(0, 200)}`);
-          return;
-        }
-
-        if (data.success) {
-          allItems.push(...data.items);
-        } else {
-          alert(`Error on image ${i + 1}: ${data.error}`);
-          return;
-        }
-      }
-
-      // Deduplicate by name
-      const seen = new Set<string>();
-      const unique = allItems.filter(item => {
-        const key = item.name.toLowerCase();
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
+      const response = await adminFetch('/api/menu/import-from-images', {
+        method: 'POST',
+        body: JSON.stringify({ images })
       });
-
-      setExtractedItems(unique.map((item: any, idx: number) => ({
-        ...item,
-        id: `extracted-${idx}-${Date.now()}`
-      })));
-    } catch (error: any) {
+      const data = await response.json();
+      if (data.success) {
+        setExtractedItems(data.items.map((item: any, idx: number) => ({
+          ...item,
+          id: `extracted-${idx}-${Date.now()}`
+        })));
+      } else {
+        alert(data.error || "Failed to process images");
+      }
+    } catch (error) {
       console.error("Processing error:", error);
-      alert(`Error: ${error.message || 'Network request failed. Please try again.'}`);
+      alert("An error occurred during processing");
     } finally {
       setIsProcessing(false);
     }
@@ -154,7 +128,7 @@ export default function MenuImportModal({ isOpen, onClose, onSuccess }: MenuImpo
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
 
       <div className="relative w-full max-w-4xl bg-card border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
@@ -174,7 +148,7 @@ export default function MenuImportModal({ isOpen, onClose, onSuccess }: MenuImpo
               {/* Image Grid */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {images.map((img, idx) => (
-                  <div key={idx} className="relative aspect-[3/4] rounded-xl overflow-hidden bg-white/5 border border-white/10 group">
+                  <div key={idx} className="relative aspect-3/4 rounded-xl overflow-hidden bg-white/5 border border-white/10 group">
                     <img src={img} className="w-full h-full object-cover" alt={`Menu preview ${idx + 1}`} />
                     <button
                       onClick={() => removeImage(idx)}
@@ -187,7 +161,7 @@ export default function MenuImportModal({ isOpen, onClose, onSuccess }: MenuImpo
                 {images.length < 6 && (
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="aspect-[3/4] border-2 border-dashed border-white/10 rounded-xl flex flex-col items-center justify-center gap-2 hover:border-accent/50 hover:bg-accent/5 transition-all text-secondary-text hover:text-accent"
+                    className="aspect-3/4 border-2 border-dashed border-white/10 rounded-xl flex flex-col items-center justify-center gap-2 hover:border-accent/50 hover:bg-accent/5 transition-all text-secondary-text hover:text-accent"
                   >
                     <Upload size={24} />
                     <span className="text-xs font-bold uppercase tracking-wider">Add Image</span>
@@ -287,7 +261,7 @@ export default function MenuImportModal({ isOpen, onClose, onSuccess }: MenuImpo
                 <button
                   onClick={saveItems}
                   disabled={isSaving}
-                  className="flex-[2] bg-accent hover:bg-emerald-400 text-background font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-accent/20"
+                  className="flex-2 bg-accent hover:bg-emerald-400 text-background font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-accent/20"
                 >
                   {isSaving ? (
                     <>

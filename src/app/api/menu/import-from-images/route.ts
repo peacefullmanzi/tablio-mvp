@@ -3,7 +3,7 @@ import { adminDb } from '@/lib/firebase-admin';
 import { requireAdminAuth } from '@/lib/api-security';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const model = "gemini-2.5-flash";
+const model = "gemini-2.0-flash";
 
 // Extend Vercel timeout to 60 seconds (AI processing takes time)
 export const maxDuration = 60;

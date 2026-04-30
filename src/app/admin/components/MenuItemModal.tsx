@@ -39,6 +39,11 @@ export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem,
     }
   }, [isOpen, restaurantId]);
 
+  const fallbackCategories = [
+    { id: 'kitchen', name: 'kitchen' },
+    { id: 'bar', name: 'bar' }
+  ];
+
   const fetchCategories = async () => {
     setIsFetchingCategories(true);
     try {
@@ -48,18 +53,27 @@ export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem,
         // Merge API categories with existing item categories for complete list
         const apiCategories = data.categories.map((c: any) => c.name);
         const itemCategories = existingItems.map(item => item.category).filter(Boolean);
-        const allUnique = Array.from(new Set([...apiCategories, ...itemCategories]))
+        const fallbackNames = fallbackCategories.map(f => f.name);
+        const allUnique = Array.from(new Set([...fallbackNames, ...apiCategories, ...itemCategories]))
           .filter(name => name !== 'ADD_NEW')
           .map(name => ({ id: name, name }));
           
         setCategories(allUnique as {id: string, name: string}[]);
         
-        if (allUnique.length === 0 && !editingItem) {
-          setShowNewCategoryInput(true);
+        // Auto-select first category if none selected
+        if (!category && allUnique.length > 0 && !editingItem) {
+          setCategory(allUnique[0].name);
         }
+      } else {
+        // Backend failed — use fallbacks
+        setCategories(fallbackCategories);
+        if (!category && !editingItem) setCategory('kitchen');
       }
     } catch (error) {
       console.error("Error fetching categories:", error);
+      // Use fallbacks on error
+      setCategories(fallbackCategories);
+      if (!category && !editingItem) setCategory('kitchen');
     } finally {
       setIsFetchingCategories(false);
     }
@@ -91,7 +105,8 @@ export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem,
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !price || !category) return;
+    const finalCategory = category || 'kitchen';
+    if (!name || !price) return;
 
     if (!restaurantId) {
       alert('Configuration error: restaurantId not set. Cannot save item.');
@@ -103,7 +118,7 @@ export default function MenuItemModal({ isOpen, onClose, onSuccess, editingItem,
       const itemData = {
         name,
         price: parseFloat(price),
-        category,
+        category: finalCategory,
         image: image || null,
       };
 
