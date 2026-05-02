@@ -81,7 +81,7 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: AdminSideb
         </button>
 
         <div className={`p-6 border-b border-white/10 flex items-center gap-3 ${isCollapsed ? 'lg:justify-center lg:px-0' : ''}`}>
-          <Image src="/logo.png" alt="Tablio Logo" width={60} height={60} className="h-11 w-auto object-contain shrink-0" />
+          <Image src="/logo.png" alt="Tablio Logo" width={454} height={383} className="h-11 w-auto object-contain shrink-0" />
           {!isCollapsed && (
             <h1 className="text-xl font-black text-primary-text tracking-tight whitespace-nowrap overflow-hidden text-ellipsis">{restaurantName}</h1>
           )}

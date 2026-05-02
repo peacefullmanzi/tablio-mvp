@@ -41,7 +41,7 @@ export default function LandingPage() {
         className="p-6 flex items-center justify-between max-w-7xl mx-auto w-full"
       >
         <div className="flex items-center gap-3">
-          <Image src="/logo.png" alt="Tablio Logo" width={56} height={56} className="object-contain" />
+          <Image src="/logo.png" alt="Tablio Logo" width={454} height={383} className="h-10 w-auto object-contain" />
           <span className="text-2xl font-black tracking-tighter">Tablio</span>
         </div>
         <Link 
