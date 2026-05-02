@@ -14,9 +14,15 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "Tablio - Digital Menu",
   description: "Modern digital menu and ordering system",
+  manifest: "/manifest.json",
   icons: {
     icon: "/logo.png",
     apple: "/logo.png",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Tablio",
   },
 };
 
@@ -27,8 +33,22 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark h-full antialiased">
+      <head>
+        <meta name="mobile-web-app-capable" content="yes" />
+      </head>
       <body className={`${inter.className} min-h-full flex flex-col bg-background text-primary-text`}>
         {children}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                  navigator.serviceWorker.register('/firebase-messaging-sw.js').catch(() => {});
+                });
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   );

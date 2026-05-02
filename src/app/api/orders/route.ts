@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
 import { parseAndValidateBody, requireRestaurantId } from '@/lib/api-security';
 import { FieldValue } from 'firebase-admin/firestore';
+import * as admin from 'firebase-admin';
 
 /**
  * POST /api/orders — Server-side order creation
@@ -118,6 +119,32 @@ export async function POST(request: Request) {
     };
 
     const docRef = await adminDb.collection('orders').add(orderData);
+
+    // 8. Send push notifications to all registered admin devices (fire-and-forget)
+    try {
+      const tokensSnapshot = await adminDb
+        .collection('restaurants').doc(restaurantId)
+        .collection('fcmTokens').get();
+
+      if (!tokensSnapshot.empty) {
+        const tokens = tokensSnapshot.docs.map(doc => doc.data().token).filter(Boolean);
+        if (tokens.length > 0) {
+          const message: admin.messaging.MulticastMessage = {
+            tokens,
+            notification: {
+              title: `⚡ New Order — Table ${tableNumber.trim()}`,
+              body: `${verifiedItems.length} item${verifiedItems.length > 1 ? 's' : ''} • ${serverTotal.toLocaleString()} total`,
+            },
+            webpush: {
+              fcmOptions: { link: '/admin' },
+            },
+          };
+          admin.messaging().sendEachForMulticast(message).catch(e => console.warn('[FCM] Send error:', e));
+        }
+      }
+    } catch (fcmErr) {
+      console.warn('[FCM] Push notification skipped:', fcmErr);
+    }
 
     return NextResponse.json({
       success: true,

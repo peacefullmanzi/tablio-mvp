@@ -8,6 +8,7 @@ import { useStore } from '@/lib/store';
 import AdminSidebar from './AdminSidebar';
 import { createContext, useContext } from 'react';
 import { adminFetch } from '@/lib/api-client';
+import { requestNotificationPermission } from '@/lib/fcm';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquare, X, Bell } from 'lucide-react';
 
@@ -104,6 +105,28 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
 
     verifyAccess();
   }, [pathname, router]);
+
+  // --- Register FCM token for push notifications ---
+  useEffect(() => {
+    if (!authorized) return;
+
+    const registerFCM = async () => {
+      try {
+        const token = await requestNotificationPermission();
+        if (token) {
+          await adminFetch('/api/admin/fcm', {
+            method: 'POST',
+            body: JSON.stringify({ token }),
+          });
+          console.log('[FCM] Token registered successfully');
+        }
+      } catch (err) {
+        console.warn('[FCM] Registration skipped:', err);
+      }
+    };
+
+    registerFCM();
+  }, [authorized]);
 
   // --- Real-time Chat Notification Listener ---
   const setHasNewMessages = useStore(state => state.setHasNewMessages);
