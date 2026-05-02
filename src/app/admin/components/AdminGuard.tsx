@@ -33,8 +33,8 @@ interface GlobalChatProps {
   onClose: () => void;
 }
 
-const BELL_SOUND = "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"; // Clean bell sound
-const ORDER_SOUND = "https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3"; // Digital alert sound
+const BELL_SOUND = "https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3"; // Softer digital alert for messages
+const ORDER_SOUND = "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"; // Loud bell for orders (must be noticeable)
 
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 

@@ -125,11 +125,11 @@ export default function OrderCard({ order, onMessageCountChange }: OrderCardProp
   }, [order.id, onMessageCountChange]);
 
   return (
-    <div className={`bg-card/80 backdrop-blur-md rounded-2xl p-6 shadow-xl border-2 transition-all duration-500 ${getUrgencyClasses()} ${isUpdating ? 'opacity-50 scale-95 animate-pulse' : 'animate-in fade-in zoom-in-95'}`}>
-      <div className="flex justify-between items-start mb-6">
+    <div className={`bg-card/80 backdrop-blur-md rounded-2xl p-4 sm:p-6 shadow-xl border-2 transition-all duration-500 ${getUrgencyClasses()} ${isUpdating ? 'opacity-50 scale-95 animate-pulse' : 'animate-in fade-in zoom-in-95'}`}>
+      <div className="flex justify-between items-start mb-4 sm:mb-6">
         <div>
           <div className="text-secondary-text text-[10px] font-black uppercase tracking-[0.2em] mb-1">Table</div>
-          <h3 className="text-5xl font-black text-primary-text leading-none tracking-tighter">
+          <h3 className="text-4xl sm:text-5xl font-black text-primary-text leading-none tracking-tighter">
             {order.table_number}
           </h3>
           <p className="text-sm text-secondary-text flex items-center gap-1 mt-2 font-medium">
@@ -216,7 +216,7 @@ export default function OrderCard({ order, onMessageCountChange }: OrderCardProp
           <button
             onClick={() => updateStatus('accepted')}
             disabled={isUpdating}
-            className="w-full bg-blue-500 text-white py-5 rounded-xl text-lg font-black transition-all flex items-center justify-center gap-2 active:scale-95 shadow-lg shadow-blue-500/20"
+            className="w-full bg-blue-500 text-white py-4 sm:py-5 rounded-xl text-base sm:text-lg font-black transition-all flex items-center justify-center gap-2 active:scale-95 shadow-lg shadow-blue-500/20 min-h-[52px]"
           >
             <CheckCircle size={20} /> ACCEPT
           </button>
@@ -226,7 +226,7 @@ export default function OrderCard({ order, onMessageCountChange }: OrderCardProp
           <button
             onClick={() => updateStatus('preparing')}
             disabled={isUpdating}
-            className="w-full bg-orange-500 text-white py-5 rounded-xl text-lg font-black transition-all flex items-center justify-center gap-2 active:scale-95 shadow-lg shadow-orange-500/20"
+            className="w-full bg-orange-500 text-white py-4 sm:py-5 rounded-xl text-base sm:text-lg font-black transition-all flex items-center justify-center gap-2 active:scale-95 shadow-lg shadow-orange-500/20 min-h-[52px]"
           >
             <ChefHat size={20} /> START COOKING
           </button>
@@ -236,7 +236,7 @@ export default function OrderCard({ order, onMessageCountChange }: OrderCardProp
           <button
             onClick={() => updateStatus('ready')}
             disabled={isUpdating}
-            className="w-full bg-accent text-background py-5 rounded-xl text-lg font-black transition-all flex items-center justify-center gap-2 active:scale-95 shadow-lg shadow-accent/20"
+            className="w-full bg-accent text-background py-4 sm:py-5 rounded-xl text-base sm:text-lg font-black transition-all flex items-center justify-center gap-2 active:scale-95 shadow-lg shadow-accent/20 min-h-[52px]"
           >
             <CheckSquare size={20} /> FOOD IS READY
           </button>
@@ -246,7 +246,7 @@ export default function OrderCard({ order, onMessageCountChange }: OrderCardProp
           <button
             onClick={() => updateStatus('completed')}
             disabled={isUpdating}
-            className="w-full bg-white text-background py-5 rounded-xl text-lg font-black transition-all flex items-center justify-center gap-2 active:scale-95 shadow-lg"
+            className="w-full bg-white text-background py-4 sm:py-5 rounded-xl text-base sm:text-lg font-black transition-all flex items-center justify-center gap-2 active:scale-95 shadow-lg min-h-[52px]"
           >
             <CheckCircle size={20} /> DELIVERED & COMPLETE
           </button>

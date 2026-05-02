@@ -156,9 +156,9 @@ function AdminContent() {
         </div>
       )}
       {/* Sticky Header */}
-      <header className="bg-background/80 backdrop-blur-xl border-b border-white/5 pt-6 pb-6 sticky top-0 z-10">
-        <div className="container mx-auto px-6">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+      <header className="bg-background/80 backdrop-blur-xl border-b border-white/5 pt-4 pb-4 sm:pt-6 sm:pb-6 sticky top-0 z-10">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
             <div className="flex items-center gap-4 min-w-0">
               <motion.button 
                 whileHover={{ scale: 1.05 }}
@@ -210,7 +210,7 @@ function AdminContent() {
           </div>
 
           {/* Bottom Row: Tabs & Controls */}
-          <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
             <div className="flex bg-white/5 p-1 rounded-xl border border-white/10">
               <motion.button
                 whileHover={{ scale: 1.02 }}
@@ -270,10 +270,10 @@ function AdminContent() {
       </header>
 
       {/* Scrollable Content Area */}
-      <main className="flex-1 overflow-y-auto p-6 pb-24">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6 pb-24">
         <div className="container mx-auto">
           {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
               {[...Array(8)].map((_, i) => (
                 <OrderCardSkeleton key={i} />
               ))}
