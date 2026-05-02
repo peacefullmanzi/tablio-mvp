@@ -20,9 +20,10 @@ messaging.onBackgroundMessage((payload) => {
     body: payload.notification?.body || 'You have a new order on Tablio',
     icon: '/logo.png',
     badge: '/logo.png',
-    vibrate: [200, 100, 200, 100, 200],
+    vibrate: [500, 110, 500, 110, 450, 110, 200, 110, 170, 40, 450, 110, 200, 110, 170, 40],
     tag: 'tablio-order',
     renotify: true,
+    requireInteraction: true, // Keep notification on screen until user dismisses it (PC)
     data: payload.data,
   };
   self.registration.showNotification(title, options);

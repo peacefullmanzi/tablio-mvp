@@ -136,7 +136,18 @@ export async function POST(request: Request) {
               body: `${verifiedItems.length} item${verifiedItems.length > 1 ? 's' : ''} • ${serverTotal.toLocaleString()} total`,
             },
             webpush: {
+              headers: {
+                Urgency: 'high',
+              },
               fcmOptions: { link: '/admin' },
+              notification: {
+                icon: '/logo.png',
+                tag: 'new-order',
+                requireInteraction: true, // Keeps notification on screen until user acts
+              }
+            },
+            android: {
+              priority: 'high',
             },
           };
           admin.messaging().sendEachForMulticast(message).catch(e => console.warn('[FCM] Send error:', e));
