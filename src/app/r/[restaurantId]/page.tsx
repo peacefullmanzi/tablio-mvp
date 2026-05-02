@@ -127,7 +127,7 @@ export default function RestaurantMenuPage({ params }: { params: Promise<{ resta
                   whileHover={{ rotate: [0, -5, 5, 0] }}
                   transition={{ duration: 0.5 }}
                 >
-                  <Image src="/logo.png" alt="Tablio Logo" width={128} height={128} className="h-16 sm:h-20 w-auto object-contain" />
+                  <Image src="/logo.png" alt="Tablio Logo" width={80} height={80} className="h-12 sm:h-14 w-auto object-contain" />
                 </motion.div>
                 <h1 className="text-3xl sm:text-5xl font-black text-primary-text tracking-tight leading-none">
                   {restaurant?.name || 'Tablio Kitchen'}
