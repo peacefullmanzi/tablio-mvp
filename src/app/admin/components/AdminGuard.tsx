@@ -150,13 +150,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
       where('restaurantId', '==', restaurantId)
     );
 
-    let isFirstMessagesLoad = true;
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      if (isFirstMessagesLoad) {
-        isFirstMessagesLoad = false;
-        return;
-      }
-
       const newMessages = snapshot.docChanges().filter(change => {
         if (change.type === 'added') {
           const data = change.doc.data();
@@ -183,10 +177,14 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
           if (Notification.permission === 'granted') {
             new Notification(`New Message: Table ${firstNew.tableNumber}`, {
               body: firstNew.message || 'Customer sent a new message.',
-              icon: '/favicon.ico'
+              icon: '/logo.png'
             });
           }
 
+          // Vibrate and Play Sound (Foreground)
+          if ('vibrate' in navigator) {
+            navigator.vibrate([200, 100, 200]);
+          }
           const audio = new Audio(BELL_SOUND);
           audio.play().catch(e => console.warn("Sound play blocked by browser.", e));
         }
@@ -194,23 +192,18 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
     });
 
     // --- GLOBAL ORDER LISTENER ---
-    let isFirstOrdersLoad = true;
     const qOrders = query(
       collection(db, 'orders'),
       where('restaurantId', '==', restaurantId)
     );
 
     const unsubscribeOrders = onSnapshot(qOrders, (snapshot) => {
-      if (isFirstOrdersLoad) {
-        isFirstOrdersLoad = false;
-        return;
-      }
-
       const newOrders = snapshot.docChanges().filter(change => {
         if (change.type === 'added') {
           const data = change.doc.data();
-          const createdAt = data.createdAt?.toDate?.() || new Date();
-          return createdAt.getTime() > startTime.getTime() - 1000;
+          // Use a 5-second window to be safe against slight clock drifts
+          const createdAt = data.created_at?.toDate?.() || new Date();
+          return createdAt.getTime() > startTime.getTime() - 5000;
         }
         return false;
       });
@@ -228,10 +221,14 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
         if (Notification.permission === 'granted') {
           new Notification(`⚡ New Order! Table ${firstOrder.table_number}`, {
             body: `A new order has been placed.`,
-            icon: '/favicon.ico'
+            icon: '/logo.png'
           });
         }
 
+        // Vibrate and Play Sound (Foreground)
+        if ('vibrate' in navigator) {
+          navigator.vibrate([500, 110, 500, 110, 450]);
+        }
         const audio = new Audio(ORDER_SOUND);
         audio.play().catch(e => console.warn("Order sound blocked.", e));
       }
