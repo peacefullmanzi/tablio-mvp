@@ -23,17 +23,19 @@ export async function POST(request: Request) {
     }
 
     const restaurantData = restaurantDoc.data();
-    if (restaurantData?.hasUsedMenuImport) {
-      return NextResponse.json({ error: 'Menu import is only available during initial setup' }, { status: 403 });
-    }
+    // REMOVED hasUsedMenuImport check to allow user to retry if it fails
+    // if (restaurantData?.hasUsedMenuImport) { ... }
 
     // 2. Parse images
-    const { images } = await request.json();
+    const body = await request.json();
+    const images = body.images;
     if (!images || !Array.isArray(images) || images.length === 0) {
+      console.error('[MenuImport] Missing or invalid images');
       return NextResponse.json({ error: 'At least one image is required' }, { status: 400 });
     }
 
     if (!GEMINI_API_KEY) {
+      console.error('[MenuImport] GEMINI_API_KEY missing');
       return NextResponse.json({ error: 'GEMINI_API_KEY not configured' }, { status: 500 });
     }
 

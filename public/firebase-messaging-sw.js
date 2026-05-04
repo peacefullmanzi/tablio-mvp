@@ -24,9 +24,39 @@ messaging.onBackgroundMessage((payload) => {
     tag: 'tablio-order',
     renotify: true,
     requireInteraction: true, // Keep notification on screen until user dismisses it (PC)
-    data: payload.data,
+    actions: [
+      { action: 'view', title: 'View Order', icon: '/logo.png' },
+      { action: 'close', title: 'Dismiss' }
+    ],
+    data: {
+      ...payload.data,
+      link: payload.fcmOptions?.link || '/admin'
+    },
   };
   self.registration.showNotification(title, options);
+});
+
+// Handle notification click
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const link = event.notification.data?.link || '/admin';
+
+  if (event.action === 'close') return;
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // If a window is already open, focus it and navigate
+      for (const client of clientList) {
+        if (client.url.includes(link) && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // If no window is open, open a new one
+      if (clients.openWindow) {
+        return clients.openWindow(link);
+      }
+    })
+  );
 });
 
 // 2. PWA Caching Logic

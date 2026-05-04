@@ -157,8 +157,12 @@ function ChatContent() {
         </div>
       </header>
 
-      <div className="flex-1 flex overflow-hidden">
-        <div className="w-64 border-r border-white/5 flex flex-col shrink-0 bg-card/30">
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Room List - Hidden on mobile when a room is selected */}
+        <div className={`
+          ${selectedRoomId ? 'hidden lg:flex' : 'flex w-full lg:w-64'} 
+          border-r border-white/5 flex-col shrink-0 bg-card/30
+        `}>
           <div className="p-4 border-b border-white/5 text-xs font-black text-secondary-text/50 uppercase tracking-widest">
             Active Chats
           </div>
@@ -194,7 +198,11 @@ function ChatContent() {
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col bg-background/50 relative">
+        {/* Chat Window - Hidden on mobile when NO room is selected */}
+        <div className={`
+          ${!selectedRoomId ? 'hidden lg:flex' : 'flex w-full'} 
+          flex-1 flex flex-col bg-background/50 relative
+        `}>
           {!selectedRoom ? (
             <div className="flex-1 flex flex-col items-center justify-center text-secondary-text p-12 text-center">
               <div className="bg-white/5 p-6 rounded-full mb-6">
@@ -205,7 +213,20 @@ function ChatContent() {
             </div>
           ) : (
             <>
-              <div className="flex-1 overflow-y-auto p-6 space-y-4 flex flex-col">
+              {/* Mobile Back Header */}
+              <div className="lg:hidden p-4 border-b border-white/5 flex items-center gap-3 bg-card/50">
+                <button 
+                  onClick={() => setSelectedRoomId(null)}
+                  className="p-2 -ml-2 text-accent hover:bg-accent/10 rounded-lg flex items-center gap-1 text-sm font-bold"
+                >
+                  <ChevronRight size={20} className="rotate-180" />
+                  All Tables
+                </button>
+                <div className="h-4 w-px bg-white/10 mx-2" />
+                <span className="text-sm font-black text-primary-text">Table {selectedRoom.tableNumber}</span>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4 flex flex-col">
                 {filteredMessages.map((msg) => (
                   <div 
                     key={msg.id} 
