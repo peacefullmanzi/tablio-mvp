@@ -31,3 +31,22 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Failed to fetch leads.' }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  const authHeader = request.headers.get('x-super-admin-key');
+  if (authHeader !== SUPER_ADMIN_KEY) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const { id } = await request.json();
+  if (!id) return NextResponse.json({ error: 'Missing lead ID' }, { status: 400 });
+
+  try {
+    if (!adminDb) throw new Error('Admin DB not initialized');
+    await adminDb.collection('leads').doc(id).delete();
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('[SuperAdmin Leads] Delete Error:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}

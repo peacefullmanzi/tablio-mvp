@@ -98,6 +98,29 @@ export default function SuperAdminPage() {
     }
   };
 
+  const handleDeleteLead = async (id: string) => {
+    if (!confirm('Are you absolutely sure you want to delete this lead?')) return;
+    
+    try {
+      const response = await fetch('/api/super-admin/leads', {
+        method: 'DELETE',
+        headers: { 
+          'x-super-admin-key': masterKey,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id })
+      });
+      
+      if (response.ok) {
+        setLeads(prev => prev.filter(l => l.id !== id));
+      } else {
+        alert('Failed to delete lead');
+      }
+    } catch (err) {
+      alert('Delete failed');
+    }
+  };
+
   const formatDate = (iso: string | null) => {
     if (!iso) return '—';
     const d = new Date(iso);
@@ -316,6 +339,7 @@ export default function SuperAdminPage() {
                         <th className="text-left text-[10px] font-black text-zinc-500 uppercase tracking-widest px-5 py-3">Email</th>
                         <th className="text-left text-[10px] font-black text-zinc-500 uppercase tracking-widest px-5 py-3">Business</th>
                         <th className="text-left text-[10px] font-black text-zinc-500 uppercase tracking-widest px-5 py-3">Date</th>
+                        <th className="text-right text-[10px] font-black text-zinc-500 uppercase tracking-widest px-5 py-3">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -336,6 +360,15 @@ export default function SuperAdminPage() {
                           <td className="px-5 py-4">
                             <span className="text-xs text-zinc-500">{formatDate(lead.createdAt)}</span>
                           </td>
+                          <td className="px-5 py-4 text-right">
+                            <button
+                              onClick={() => handleDeleteLead(lead.id)}
+                              className="p-2 bg-red-500/10 rounded-xl text-red-500 hover:bg-red-500 hover:text-white transition-all inline-flex"
+                              title="Delete Lead"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -355,9 +388,17 @@ export default function SuperAdminPage() {
                           {businessLabel(lead.businessType)}
                         </span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-[11px] text-zinc-600">
-                        <Calendar size={12} />
-                        {formatDate(lead.createdAt)}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 text-[11px] text-zinc-600">
+                          <Calendar size={12} />
+                          {formatDate(lead.createdAt)}
+                        </div>
+                        <button
+                          onClick={() => handleDeleteLead(lead.id)}
+                          className="p-1.5 bg-red-500/10 rounded-lg text-red-500 hover:bg-red-500 hover:text-white transition-all"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </div>
                     </div>
                   ))}

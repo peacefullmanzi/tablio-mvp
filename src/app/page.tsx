@@ -180,47 +180,48 @@ export default function LandingPage() {
       {/* ═══ Hero ═══ */}
       <section className="relative py-20 sm:py-28 px-6">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-accent/8 blur-[120px] rounded-full" />
+          <div className="absolute top-1/3 right-0 w-[500px] h-[500px] bg-accent/6 blur-[120px] rounded-full" />
         </div>
-        <div className="max-w-6xl mx-auto relative flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
-          {/* Left: Text */}
-          <div className="flex-1 text-center lg:text-left">
+        <div className="max-w-6xl mx-auto relative flex flex-col lg:flex-row items-center gap-16">
+          {/* Left: Copy */}
+          <div className="flex-1 text-center lg:text-left space-y-6">
             <FadeIn>
-              <p className="text-accent font-bold text-sm tracking-widest uppercase mb-4">QR Ordering for Restaurants & Hotels</p>
-              <h2 className="text-3xl sm:text-4xl font-black tracking-tighter mb-6 text-primary-text">Temfy</h2>
+              <span className="inline-block text-accent text-xs font-bold tracking-widest uppercase bg-accent/10 border border-accent/20 px-4 py-1.5 rounded-full">
+                QR Ordering for Restaurants & Hotels
+              </span>
             </FadeIn>
             <FadeIn delay={0.1}>
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight leading-[1.1] mb-6">
-                Serve customers faster.<br />
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.08]">
+                Serve customers faster.{' '}
                 <span className="text-accent">Without the chaos.</span>
               </h1>
             </FadeIn>
             <FadeIn delay={0.2}>
-              <p className="text-lg sm:text-xl text-secondary-text max-w-xl mx-auto lg:mx-0 mb-10 leading-relaxed">
-                Real-time QR ordering that eliminates missed orders, long waits, and manual mistakes. Your customers order from their phone. Your staff sees it instantly.
+              <p className="text-base sm:text-lg text-secondary-text max-w-lg mx-auto lg:mx-0 leading-relaxed">
+                Temfy lets your customers scan, order, and pay from their phone — while your staff receives every order in real-time. No missed orders. No delays.
               </p>
             </FadeIn>
             <FadeIn delay={0.3}>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start max-w-md mx-auto lg:mx-0">
-                <a href="#waitlist" className="flex-1 bg-accent hover:bg-emerald-400 text-background font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-xl shadow-accent/20 text-sm">
+              <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start pt-2">
+                <a href="#waitlist" className="bg-accent hover:bg-emerald-400 text-background font-bold py-3.5 px-8 rounded-xl flex items-center justify-center gap-2 transition-all shadow-xl shadow-accent/20 text-sm">
                   Join Waitlist <ArrowRight size={16} />
                 </a>
-                <a href="#how-it-works" className="flex-1 bg-white/5 border border-white/10 text-primary-text font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-white/10 transition-all text-sm">
+                <a href="#how-it-works" className="bg-white/5 border border-white/10 text-primary-text font-bold py-3.5 px-8 rounded-xl flex items-center justify-center gap-2 hover:bg-white/10 transition-all text-sm">
                   See How It Works
                 </a>
               </div>
             </FadeIn>
           </div>
           {/* Right: Mockup */}
-          <FadeIn delay={0.2} className="flex-1 w-full max-w-xl lg:max-w-none">
+          <FadeIn delay={0.25} className="flex-1 w-full lg:max-w-[55%]">
             <div className="relative">
-              <div className="absolute -inset-4 bg-accent/10 blur-3xl rounded-3xl pointer-events-none" />
+              <div className="absolute -inset-6 bg-accent/8 blur-[60px] rounded-3xl pointer-events-none" />
               <Image
                 src="/mockup.png"
-                alt="Temfy - Customer ordering and Admin dashboard"
+                alt="Temfy — Customer ordering and admin dashboard"
                 width={1344}
                 height={896}
-                className="relative rounded-xl shadow-2xl shadow-black/40 border border-white/10 w-full h-auto"
+                className="relative rounded-2xl shadow-2xl shadow-black/50 border border-white/10 w-full h-auto"
                 priority
               />
             </div>
