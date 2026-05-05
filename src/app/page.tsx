@@ -2,13 +2,14 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import {
   QrCode, ChefHat, LayoutDashboard, Truck,
   XCircle, Clock, AlertTriangle, Users,
   CheckCircle, Zap, BarChart3, ShieldCheck,
   Hotel, Coffee, MapPin, UtensilsCrossed,
-  ArrowRight, Send, Loader2
+  ArrowRight, Send, Loader2, Mail, Phone
 } from 'lucide-react';
 import TemfyLogo from '@/components/ui/TemfyLogo';
 
@@ -155,111 +156,56 @@ export default function LandingPage() {
       </nav>
 
       {/* ═══ Hero ═══ */}
-      <section className="relative py-24 sm:py-32 px-6">
+      <section className="relative py-20 sm:py-28 px-6">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-accent/8 blur-[120px] rounded-full" />
         </div>
-        <div className="max-w-4xl mx-auto text-center relative">
-          <FadeIn>
-            <p className="text-accent font-bold text-sm tracking-widest uppercase mb-6">QR Ordering for Restaurants & Hotels</p>
-          </FadeIn>
-          <FadeIn delay={0.1}>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight leading-[1.1] mb-6">
-              Serve customers faster.<br />
-              <span className="text-accent">Without the chaos.</span>
-            </h1>
-          </FadeIn>
-          <FadeIn delay={0.2}>
-            <p className="text-lg sm:text-xl text-secondary-text max-w-2xl mx-auto mb-10 leading-relaxed">
-              Real-time QR ordering that eliminates missed orders, long waits, and manual mistakes. Your customers order from their phone. Your staff sees it instantly.
-            </p>
-          </FadeIn>
-          <FadeIn delay={0.3}>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
-              <a href="#waitlist" className="flex-1 bg-accent hover:bg-emerald-400 text-background font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-xl shadow-accent/20 text-sm">
-                Join Waitlist <ArrowRight size={16} />
-              </a>
-              <a href="#how-it-works" className="flex-1 bg-white/5 border border-white/10 text-primary-text font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-white/10 transition-all text-sm">
-                See How It Works
-              </a>
+        <div className="max-w-6xl mx-auto relative flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+          {/* Left: Text */}
+          <div className="flex-1 text-center lg:text-left">
+            <FadeIn>
+              <p className="text-accent font-bold text-sm tracking-widest uppercase mb-6">QR Ordering for Restaurants & Hotels</p>
+            </FadeIn>
+            <FadeIn delay={0.1}>
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight leading-[1.1] mb-6">
+                Serve customers faster.<br />
+                <span className="text-accent">Without the chaos.</span>
+              </h1>
+            </FadeIn>
+            <FadeIn delay={0.2}>
+              <p className="text-lg sm:text-xl text-secondary-text max-w-xl mx-auto lg:mx-0 mb-10 leading-relaxed">
+                Real-time QR ordering that eliminates missed orders, long waits, and manual mistakes. Your customers order from their phone. Your staff sees it instantly.
+              </p>
+            </FadeIn>
+            <FadeIn delay={0.3}>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start max-w-md mx-auto lg:mx-0">
+                <a href="#waitlist" className="flex-1 bg-accent hover:bg-emerald-400 text-background font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-xl shadow-accent/20 text-sm">
+                  Join Waitlist <ArrowRight size={16} />
+                </a>
+                <a href="#how-it-works" className="flex-1 bg-white/5 border border-white/10 text-primary-text font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-white/10 transition-all text-sm">
+                  See How It Works
+                </a>
+              </div>
+            </FadeIn>
+          </div>
+          {/* Right: Mockup */}
+          <FadeIn delay={0.2} className="flex-1 w-full max-w-xl lg:max-w-none">
+            <div className="relative">
+              <div className="absolute -inset-4 bg-accent/10 blur-3xl rounded-3xl pointer-events-none" />
+              <Image
+                src="/mockup.png"
+                alt="Temfy - Customer ordering and Admin dashboard"
+                width={1344}
+                height={896}
+                className="relative rounded-xl shadow-2xl shadow-black/40 border border-white/10 w-full h-auto"
+                priority
+              />
             </div>
           </FadeIn>
         </div>
       </section>
 
-      {/* ═══ Demo Simulation (Proof) ═══ */}
-      <section className="px-6 pb-20">
-        <FadeIn>
-          <div className="max-w-4xl mx-auto bg-card border border-white/5 rounded-2xl overflow-hidden shadow-2xl">
-            <div className="flex items-center gap-2 px-5 py-3 border-b border-white/5">
-              <div className="w-3 h-3 rounded-full bg-red-500/60" />
-              <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
-              <div className="w-3 h-3 rounded-full bg-green-500/60" />
-              <span className="text-[11px] text-secondary-text/50 ml-2 font-mono">temfy.app/admin</span>
-            </div>
-            <div className="p-6 sm:p-10">
-              <div className="flex flex-col sm:flex-row gap-6">
-                {/* Customer Side */}
-                <div className="flex-1 bg-background border border-white/10 rounded-xl p-5 space-y-3">
-                  <div className="flex items-center gap-2 mb-4">
-                    <QrCode size={16} className="text-accent" />
-                    <span className="text-xs font-bold text-accent uppercase tracking-wider">Customer View</span>
-                  </div>
-                  <div className="space-y-2">
-                    {['Grilled Salmon', 'Caesar Salad', 'Sparkling Water'].map((item, i) => (
-                      <div key={i} className="flex items-center justify-between bg-white/5 rounded-lg px-3 py-2">
-                        <span className="text-sm font-medium">{item}</span>
-                        <span className="text-xs text-accent font-bold">Added</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="bg-accent text-background text-center py-2 rounded-lg text-sm font-bold mt-3">
-                    Order Placed ✓
-                  </div>
-                </div>
-                {/* Arrow */}
-                <div className="flex items-center justify-center sm:flex-col">
-                  <motion.div
-                    animate={{ x: [0, 6, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-                  >
-                    <ArrowRight size={24} className="text-accent rotate-90 sm:rotate-0" />
-                  </motion.div>
-                  <span className="text-[10px] text-secondary-text/50 font-bold uppercase tracking-wider ml-2 sm:ml-0 sm:mt-2">Instant</span>
-                </div>
-                {/* Admin Side */}
-                <div className="flex-1 bg-background border border-white/10 rounded-xl p-5 space-y-3">
-                  <div className="flex items-center gap-2 mb-4">
-                    <LayoutDashboard size={16} className="text-accent" />
-                    <span className="text-xs font-bold text-accent uppercase tracking-wider">Admin Dashboard</span>
-                  </div>
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.8 }}
-                    className="bg-accent/10 border border-accent/20 rounded-lg p-3 space-y-2"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold">🔔 New Order — Table 4</span>
-                      <span className="text-[10px] text-accent font-bold uppercase">Just now</span>
-                    </div>
-                    <div className="text-xs text-secondary-text space-y-1">
-                      <p>• Grilled Salmon</p>
-                      <p>• Caesar Salad</p>
-                      <p>• Sparkling Water</p>
-                    </div>
-                  </motion.div>
-                  <div className="flex gap-2 mt-2">
-                    <div className="flex-1 bg-accent/10 text-accent text-center py-1.5 rounded-lg text-xs font-bold">Accept</div>
-                    <div className="flex-1 bg-white/5 text-secondary-text text-center py-1.5 rounded-lg text-xs font-bold">Details</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </FadeIn>
-      </section>
+
 
       {/* ═══ Problem ═══ */}
       <section className="py-20 px-6 border-t border-white/5">
@@ -382,9 +328,52 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ═══ Contact ═══ */}
+      <section id="contact" className="py-20 px-6 border-t border-white/5">
+        <div className="max-w-3xl mx-auto text-center">
+          <FadeIn>
+            <p className="text-accent font-bold text-sm tracking-widest uppercase mb-4">Get in Touch</p>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight mb-6">
+              Have questions? Let&apos;s talk.
+            </h2>
+            <p className="text-secondary-text mb-10 max-w-lg mx-auto">
+              Whether you&apos;re ready to get started or just want to learn more, we&apos;d love to hear from you.
+            </p>
+          </FadeIn>
+          <FadeIn delay={0.1}>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-lg mx-auto">
+              <a
+                href="mailto:peacefullmanzi@gmail.com"
+                className="flex-1 bg-card border border-white/10 rounded-xl p-5 flex items-center gap-4 hover:border-accent/30 transition-colors group"
+              >
+                <div className="w-11 h-11 bg-accent/10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                  <Mail size={20} className="text-accent" />
+                </div>
+                <div className="text-left">
+                  <p className="text-xs text-secondary-text mb-0.5">Email</p>
+                  <p className="text-sm font-bold text-primary-text">peacefullmanzi@gmail.com</p>
+                </div>
+              </a>
+              <a
+                href="tel:+250796348676"
+                className="flex-1 bg-card border border-white/10 rounded-xl p-5 flex items-center gap-4 hover:border-accent/30 transition-colors group"
+              >
+                <div className="w-11 h-11 bg-accent/10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                  <Phone size={20} className="text-accent" />
+                </div>
+                <div className="text-left">
+                  <p className="text-xs text-secondary-text mb-0.5">Phone</p>
+                  <p className="text-sm font-bold text-primary-text">+250 796 348 676</p>
+                </div>
+              </a>
+            </div>
+          </FadeIn>
+        </div>
+      </section>
+
       {/* ═══ Footer ═══ */}
       <footer className="border-t border-white/5 py-10 px-6">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2.5">
             <TemfyLogo size={24} color="#10B981" />
             <span className="text-sm font-black tracking-tighter">Temfy</span>
@@ -396,6 +385,14 @@ export default function LandingPage() {
             <Link href="/onboarding" className="text-xs text-secondary-text hover:text-primary-text transition-colors">
               Onboard
             </Link>
+            <a href="#contact" className="text-xs text-secondary-text hover:text-primary-text transition-colors">
+              Contact
+            </a>
+          </div>
+          <div className="flex flex-col sm:flex-row items-center gap-4 text-xs text-secondary-text/50">
+            <a href="mailto:peacefullmanzi@gmail.com" className="hover:text-secondary-text transition-colors">peacefullmanzi@gmail.com</a>
+            <span className="hidden sm:inline">·</span>
+            <a href="tel:+250796348676" className="hover:text-secondary-text transition-colors">+250 796 348 676</a>
           </div>
           <p className="text-xs text-secondary-text/50">
             © {new Date().getFullYear()} Temfy. All rights reserved.
