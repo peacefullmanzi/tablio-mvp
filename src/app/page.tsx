@@ -1,6 +1,6 @@
 'use client';
 
-import { UtensilsCrossed, Smartphone, Zap, Shield, ChevronRight, Store, ArrowRight, Menu } from 'lucide-react';
+import { UtensilsCrossed, Smartphone, Zap, Shield, ChevronRight, Store, ArrowRight, Menu, QrCode, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import TemfyLogo from '@/components/ui/TemfyLogo';
