@@ -25,7 +25,7 @@ messaging.onBackgroundMessage((payload) => {
     renotify: true,
     requireInteraction: true, // Keep notification on screen until user dismisses it (PC)
     actions: [
-      { action: 'view', title: 'View Order', icon: '/logo.png' },
+      { action: 'view', title: 'View Order', icon: '/logo.svg' },
       { action: 'close', title: 'Dismiss' }
     ],
     data: {

@@ -12,17 +12,17 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Tablio - Digital Menu",
+  title: "Temfy - Digital Menu",
   description: "Modern digital menu and ordering system",
   manifest: "/manifest.json",
   icons: {
-    icon: "/logo.png",
-    apple: "/logo.png",
+    icon: "/logo.svg",
+    apple: "/logo.svg",
   },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Tablio",
+    title: "Temfy",
   },
 };
 
@@ -36,7 +36,7 @@ export default function RootLayout({
       <head>
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
-      <body className={`${inter.className} min-h-full flex flex-col bg-background text-primary-text`}>
+      <body className={`${inter.className} min-h-full flex flex-col bg-temfy-bg text-temfy-text`}>
         {children}
         <script
           dangerouslySetInnerHTML={{

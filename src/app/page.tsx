@@ -1,9 +1,9 @@
 'use client';
 
-import { UtensilsCrossed, QrCode, Store, ChevronRight, Sparkles } from 'lucide-react';
+import { UtensilsCrossed, Smartphone, Zap, Shield, ChevronRight, Store, ArrowRight, Menu } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { motion } from 'framer-motion';
+import TemfyLogo from '@/components/ui/TemfyLogo';
 
 export default function LandingPage() {
   const containerVariants = {
@@ -11,15 +11,18 @@ export default function LandingPage() {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1,
-        duration: 0.5
+        staggerChildren: 0.1
       }
     }
-  } as const;
+  };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: { duration: 0.4, ease: "easeOut" }
+    }
   } as const;
 
   const cardVariants = {
@@ -32,7 +35,7 @@ export default function LandingPage() {
   } as const;
 
   return (
-    <div className="min-h-screen bg-background text-primary-text flex flex-col overflow-x-hidden">
+    <div className="min-h-screen bg-temfy-bg text-temfy-text flex flex-col overflow-x-hidden">
       {/* Header */}
       <motion.header 
         initial={{ y: -20, opacity: 0 }}
@@ -41,12 +44,12 @@ export default function LandingPage() {
         className="p-6 flex items-center justify-between max-w-7xl mx-auto w-full"
       >
         <div className="flex items-center gap-3">
-          <Image src="/logo.png" alt="Tablio Logo" width={454} height={383} className="h-10 w-auto object-contain" />
-          <span className="text-2xl font-black tracking-tighter">Tablio</span>
+          <TemfyLogo size={40} color="#10B981" />
+          <span className="text-2xl font-black tracking-tighter">Temfy</span>
         </div>
         <Link 
           href="/admin" 
-          className="text-sm font-bold text-secondary-text hover:text-accent transition-colors"
+          className="text-sm font-bold text-temfy-muted hover:text-temfy-accent transition-colors"
         >
           Restaurant Login
         </Link>

@@ -141,7 +141,7 @@ export async function POST(request: Request) {
               },
               fcmOptions: { link: '/admin' },
               notification: {
-                icon: '/logo.png',
+                icon: '/logo.svg',
                 tag: 'new-order',
                 requireInteraction: true, // Keeps notification on screen until user acts
               }

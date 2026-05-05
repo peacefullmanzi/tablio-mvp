@@ -2,13 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Utensils, Settings, LogOut, ChevronLeft, ChevronRight, ExternalLink, MessageCircle } from 'lucide-react';
-import Image from 'next/image';
+import { LayoutDashboard, Utensils, Settings, LogOut, ChevronLeft, ChevronRight, ExternalLink, MessageCircle, ShieldCheck, UserCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store';
 import SettingsModal from './SettingsModal';
 import { adminFetch } from '@/lib/api-client';
-import { ShieldCheck, UserCircle } from 'lucide-react';
+import TemfyLogo from '@/components/ui/TemfyLogo';
 
 interface AdminSidebarProps {
   isCollapsed: boolean;
@@ -77,13 +76,10 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: AdminSideb
           onClick={() => setIsCollapsed(!isCollapsed)} 
           className="absolute -right-3 top-8 bg-accent text-background rounded-full p-1 shadow-lg hover:scale-110 transition-transform hidden lg:block"
         >
-          {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-        </button>
-
         <div className={`p-6 border-b border-white/10 flex items-center gap-3 ${isCollapsed ? 'lg:justify-center lg:px-0' : ''}`}>
-          <Image src="/logo.png" alt="Tablio Logo" width={454} height={383} className="h-11 w-auto object-contain shrink-0" />
+          <TemfyLogo size={24} color="#10B981" />
           {!isCollapsed && (
-            <h1 className="text-xl font-black text-primary-text tracking-tight whitespace-nowrap overflow-hidden text-ellipsis">{restaurantName}</h1>
+            <h1 className="text-xl font-black text-temfy-text tracking-tight whitespace-nowrap overflow-hidden text-ellipsis">{restaurantName}</h1>
           )}
         </div>
 

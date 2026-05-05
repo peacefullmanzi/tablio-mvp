@@ -6,14 +6,13 @@ import { db } from '@/lib/firebase';
 import { MenuItem as MenuItemType } from '@/types/menu';
 import MenuList from '../../customer/components/MenuList';
 import Cart from '../../customer/components/Cart';
-import { UtensilsCrossed, ExternalLink, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { MenuItemSkeleton } from '../../admin/components/Skeleton';
 import { useStore } from '@/lib/store';
 import GlobalChat from '../../customer/components/GlobalChat';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, UtensilsCrossed, ExternalLink, AlertTriangle } from 'lucide-react';
+import TemfyLogo from '@/components/ui/TemfyLogo';
 
 interface RestaurantData {
   name: string;
@@ -127,10 +126,10 @@ export default function RestaurantMenuPage({ params }: { params: Promise<{ resta
                   whileHover={{ rotate: [0, -5, 5, 0] }}
                   transition={{ duration: 0.5 }}
                 >
-                  <Image src="/logo.png" alt="Tablio Logo" width={454} height={383} className="h-12 sm:h-14 w-auto object-contain" />
+                  <TemfyLogo size={28} color="#10B981" />
                 </motion.div>
-                <h1 className="text-3xl sm:text-5xl font-black text-primary-text tracking-tight leading-none">
-                  {restaurant?.name || 'Tablio Kitchen'}
+                <h1 className="text-3xl sm:text-5xl font-black text-temfy-text tracking-tight leading-none">
+                  {restaurant?.name || 'Temfy Kitchen'}
                 </h1>
               </div>
               <p className="text-secondary-text text-sm sm:text-base font-medium ml-1">Elevated dining, ordered instantly.</p>

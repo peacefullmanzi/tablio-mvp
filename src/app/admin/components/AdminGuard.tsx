@@ -177,7 +177,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
           if (Notification.permission === 'granted') {
             new Notification(`New Message: Table ${firstNew.tableNumber}`, {
               body: firstNew.message || 'Customer sent a new message.',
-              icon: '/logo.png'
+              icon: '/logo.svg'
             });
           }
 
@@ -221,7 +221,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
         if (Notification.permission === 'granted') {
           new Notification(`⚡ New Order! Table ${firstOrder.table_number}`, {
             body: `A new order has been placed.`,
-            icon: '/logo.png'
+            icon: '/logo.svg'
           });
         }
 
