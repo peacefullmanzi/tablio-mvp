@@ -35,7 +35,7 @@ export default function LandingPage() {
   } as const;
 
   return (
-    <div className="min-h-screen bg-temfy-bg text-temfy-text flex flex-col overflow-x-hidden">
+    <div className="min-h-screen bg-background text-primary-text flex flex-col overflow-x-hidden">
       {/* Header */}
       <motion.header 
         initial={{ y: -20, opacity: 0 }}
@@ -49,7 +49,7 @@ export default function LandingPage() {
         </div>
         <Link 
           href="/admin" 
-          className="text-sm font-bold text-temfy-muted hover:text-temfy-accent transition-colors"
+          className="text-sm font-bold text-secondary-text hover:text-accent transition-colors"
         >
           Restaurant Login
         </Link>

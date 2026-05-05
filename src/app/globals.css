@@ -1,19 +1,19 @@
 @import "tailwindcss";
 
 :root {
-  --temfy-bg: #0F172A;
-  --temfy-card: #111C2E;
-  --temfy-text: #E5E7EB;
-  --temfy-muted: #9CA3AF;
-  --temfy-accent: #10B981;
+  --background: #0F172A;
+  --card: #111C2E;
+  --primary-text: #E5E7EB;
+  --secondary-text: #9CA3AF;
+  --accent: #10B981;
 }
 
 @theme {
-  --color-temfy-bg: var(--temfy-bg);
-  --color-temfy-card: var(--temfy-card);
-  --color-temfy-text: var(--temfy-text);
-  --color-temfy-muted: var(--temfy-muted);
-  --color-temfy-accent: var(--temfy-accent);
+  --color-background: var(--background);
+  --color-card: var(--card);
+  --color-primary-text: var(--primary-text);
+  --color-secondary-text: var(--secondary-text);
+  --color-accent: var(--accent);
 
   @keyframes slide-up {
     from {

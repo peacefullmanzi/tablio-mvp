@@ -74,7 +74,7 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: AdminSideb
         {/* Collapse Toggle - Only on Desktop */}
         <button 
           onClick={() => setIsCollapsed(!isCollapsed)} 
-          className="absolute -right-3 top-8 bg-temfy-accent text-temfy-bg rounded-full p-1 shadow-lg hover:scale-110 transition-transform hidden lg:block"
+          className="absolute -right-3 top-8 bg-accent text-background rounded-full p-1 shadow-lg hover:scale-110 transition-transform hidden lg:block"
         >
           {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
         </button>
@@ -82,7 +82,7 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: AdminSideb
         <div className={`p-6 border-b border-white/10 flex items-center gap-3 ${isCollapsed ? 'lg:justify-center lg:px-0' : ''}`}>
           <TemfyLogo size={24} color="#10B981" />
           {!isCollapsed && (
-            <h1 className="text-xl font-black text-temfy-text tracking-tight whitespace-nowrap overflow-hidden text-ellipsis">{restaurantName}</h1>
+            <h1 className="text-xl font-black text-primary-text tracking-tight whitespace-nowrap overflow-hidden text-ellipsis">{restaurantName}</h1>
           )}
         </div>
 

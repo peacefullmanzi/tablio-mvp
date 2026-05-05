@@ -128,7 +128,7 @@ export default function RestaurantMenuPage({ params }: { params: Promise<{ resta
                 >
                   <TemfyLogo size={28} color="#10B981" />
                 </motion.div>
-                <h1 className="text-3xl sm:text-5xl font-black text-temfy-text tracking-tight leading-none">
+                <h1 className="text-3xl sm:text-5xl font-black text-primary-text tracking-tight leading-none">
                   {restaurant?.name || 'Temfy Kitchen'}
                 </h1>
               </div>

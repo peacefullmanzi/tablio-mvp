@@ -36,7 +36,7 @@ export default function RootLayout({
       <head>
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
-      <body className={`${inter.className} min-h-full flex flex-col bg-temfy-bg text-temfy-text`}>
+      <body className={`${inter.className} min-h-full flex flex-col bg-background text-primary-text`}>
         {children}
         <script
           dangerouslySetInnerHTML={{
