@@ -164,7 +164,8 @@ export default function LandingPage() {
       <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-white/5">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <TemfyLogo size={32} color="#10B981" />
+            <TemfyLogo size={36} color="#10B981" />
+            <span className="text-2xl sm:text-3xl font-black tracking-tighter text-primary-text">Temfy</span>
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/admin" className="text-sm text-secondary-text hover:text-primary-text transition-colors">
