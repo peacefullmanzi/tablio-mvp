@@ -186,9 +186,14 @@ export default function LandingPage() {
           {/* Left: Copy */}
           <div className="flex-1 text-center lg:text-left space-y-6">
             <FadeIn>
-              <span className="inline-block text-accent text-xs font-bold tracking-widest uppercase bg-accent/10 border border-accent/20 px-4 py-1.5 rounded-full">
-                QR Ordering for Restaurants & Hotels
-              </span>
+              <div className="inline-flex items-center gap-3 bg-white/5 border border-white/10 p-1 rounded-full pr-4 mb-2">
+                <span className="bg-accent text-background text-[10px] sm:text-xs font-black tracking-widest uppercase px-3 py-1.5 rounded-full">
+                  Temfy
+                </span>
+                <span className="text-[10px] sm:text-xs font-bold tracking-wide text-secondary-text uppercase">
+                  QR Ordering System
+                </span>
+              </div>
             </FadeIn>
             <FadeIn delay={0.1}>
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.08]">
