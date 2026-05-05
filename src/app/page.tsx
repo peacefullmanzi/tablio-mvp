@@ -15,15 +15,35 @@ import TemfyLogo from '@/components/ui/TemfyLogo';
 
 // ─── Waitlist Form ─────────────────────────────────────────
 function WaitlistForm({ compact = false }: { compact?: boolean }) {
-  const [formState, setFormState] = useState<'idle' | 'loading' | 'success'>('idle');
+  const [formState, setFormState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [formData, setFormData] = useState({ name: '', email: '', business: 'restaurant' });
+  const [errorMsg, setErrorMsg] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormState('loading');
-    // Simulate API call — replace with real endpoint later
-    await new Promise(r => setTimeout(r, 1200));
-    setFormState('success');
+    setErrorMsg('');
+    try {
+      const res = await fetch('/api/leads/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          businessType: formData.business,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErrorMsg(data.error || 'Something went wrong.');
+        setFormState('error');
+        return;
+      }
+      setFormState('success');
+    } catch {
+      setErrorMsg('Network error. Please try again.');
+      setFormState('error');
+    }
   };
 
   if (formState === 'success') {
@@ -85,6 +105,9 @@ function WaitlistForm({ compact = false }: { compact?: boolean }) {
           )}
         </button>
       </div>
+      {formState === 'error' && (
+        <p className="text-red-400 text-sm text-center">{errorMsg}</p>
+      )}
     </form>
   );
 }
@@ -142,10 +165,9 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
             <TemfyLogo size={32} color="#10B981" />
-            <span className="text-xl font-black tracking-tighter">Temfy</span>
           </Link>
           <div className="flex items-center gap-4">
-            <Link href="/admin" className="text-sm text-secondary-text hover:text-primary-text transition-colors hidden sm:block">
+            <Link href="/admin" className="text-sm text-secondary-text hover:text-primary-text transition-colors">
               Login
             </Link>
             <a href="#waitlist" className="bg-accent hover:bg-emerald-400 text-background text-sm font-bold px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-accent/20">
@@ -164,7 +186,8 @@ export default function LandingPage() {
           {/* Left: Text */}
           <div className="flex-1 text-center lg:text-left">
             <FadeIn>
-              <p className="text-accent font-bold text-sm tracking-widest uppercase mb-6">QR Ordering for Restaurants & Hotels</p>
+              <p className="text-accent font-bold text-sm tracking-widest uppercase mb-4">QR Ordering for Restaurants & Hotels</p>
+              <h2 className="text-3xl sm:text-4xl font-black tracking-tighter mb-6 text-primary-text">Temfy</h2>
             </FadeIn>
             <FadeIn delay={0.1}>
               <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight leading-[1.1] mb-6">
