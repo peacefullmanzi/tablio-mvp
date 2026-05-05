@@ -89,7 +89,7 @@ export default function OnboardingPage() {
           
           <div className="space-y-2">
             <h1 className="text-3xl font-black text-primary-text tracking-tight">Setup Complete!</h1>
-            <p className="text-secondary-text text-sm">Your restaurant is now live on Tablio.</p>
+            <p className="text-secondary-text text-sm">Your restaurant is now live on Temfy.</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center bg-background/50 border border-white/5 p-8 rounded-3xl">
@@ -142,7 +142,7 @@ export default function OnboardingPage() {
           <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto border border-white/10 rotate-3">
             <Store size={32} className="text-accent" />
           </div>
-          <h1 className="text-4xl font-black text-primary-text tracking-tighter">Welcome to Tablio</h1>
+          <h1 className="text-4xl font-black text-temfy-text tracking-tighter">Welcome to Temfy</h1>
           <p className="text-secondary-text">Let&apos;s set up your digital kitchen.</p>
         </div>
 

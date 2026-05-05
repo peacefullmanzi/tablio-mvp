@@ -182,7 +182,7 @@ function LoginContent() {
             Secure Endpoint
           </div>
           <p className="text-secondary-text text-[10px] font-medium opacity-40">
-            Tablio Security Layer v2.0 • Admin Dashboard
+            Temfy Security Layer v2.0 • Admin Dashboard
           </p>
         </div>
       </div>

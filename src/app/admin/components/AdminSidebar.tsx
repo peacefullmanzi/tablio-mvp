@@ -18,7 +18,7 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: AdminSideb
   const pathname = usePathname();
   const router = useRouter();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [restaurantName, setRestaurantName] = useState('Tablio OS');
+  const [restaurantName, setRestaurantName] = useState('Temfy OS');
   const { hasNewMessages, setHasNewMessages } = useStore();
 
   useEffect(() => {

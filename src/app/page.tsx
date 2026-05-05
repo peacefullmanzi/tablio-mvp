@@ -83,7 +83,7 @@ export default function LandingPage() {
             The Future of <span className="text-accent">Dining</span> is Here.
           </motion.h1>
           <motion.p variants={itemVariants} className="text-lg sm:text-xl text-secondary-text max-w-2xl font-medium">
-            Scan. Order. Enjoy. Tablio brings the modern digital experience to your favorite restaurants.
+            Scan. Order. Enjoy. Temfy brings the modern digital experience to your favorite restaurants.
           </motion.p>
         </motion.div>
 
