@@ -93,7 +93,6 @@ function AdminContent() {
     const q = query(
       collection(db, 'orders'),
       where('restaurantId', '==', restaurantId),
-      where('status', '!=', 'completed'),
       limit(100)
     );
 
@@ -104,20 +103,21 @@ function AdminContent() {
         fetchedOrders.push({ 
           id: doc.id, 
           ...data,
-          created_at: data.created_at?.toDate ? data.created_at.toDate() : data.created_at
-        } as Order);
-      });
-
-      const sortedOrders = fetchedOrders.sort((a, b) => {
-        const dateA = a.created_at instanceof Date ? a.created_at.getTime() : 0;
-        const dateB = b.created_at instanceof Date ? b.created_at.getTime() : 0;
-        return dateB - dateA;
-      });
+      const sortedOrders = fetchedOrders
+        .filter(o => o.status !== 'completed')
+        .sort((a, b) => {
+          const dateA = a.created_at instanceof Date ? a.created_at.getTime() : 0;
+          const dateB = b.created_at instanceof Date ? b.created_at.getTime() : 0;
+          return dateB - dateA;
+        });
 
       setOrders(sortedOrders);
       setIsLoading(false);
     }, (error) => {
       console.error("[AdminPage] Active orders listener error:", error);
+      if (error.message.includes('index')) {
+        alert("Firestore Index Required: Please check the console and click the link to create the required composite index for orders.");
+      }
       setIsLoading(false);
     });
 
@@ -170,8 +170,11 @@ function AdminContent() {
       } else if (direction === 'next') {
         setHasMore(false);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error fetching history:", err);
+      if (err.message?.includes('index')) {
+        alert("Firestore Index Required for History: Please check the browser console for a link to generate the required index.");
+      }
     } finally {
       setIsFetchingHistory(false);
       setIsLoading(false);
