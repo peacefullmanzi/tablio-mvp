@@ -103,6 +103,10 @@ function AdminContent() {
         fetchedOrders.push({ 
           id: doc.id, 
           ...data,
+          created_at: data.created_at?.toDate ? data.created_at.toDate() : data.created_at
+        } as Order);
+      });
+
       const sortedOrders = fetchedOrders
         .filter(o => o.status !== 'completed')
         .sort((a, b) => {
