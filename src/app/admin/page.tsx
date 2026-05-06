@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { collection, query, onSnapshot, orderBy, where, limit } from 'firebase/firestore';
+import { collection, query, onSnapshot, orderBy, where, limit, startAfter, endBefore, getDocs, limitToLast, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Order } from '@/types/order';
 import OrderList from './components/OrderList';
-import { RefreshCcw, Bell, BellOff, History, Inbox, Trash2, MessageSquare, Search, Menu } from 'lucide-react';
+import { RefreshCcw, Bell, BellOff, History, Inbox, Trash2, MessageSquare, Search, Menu, ChevronLeft, ChevronRight } from 'lucide-react';
 import { OrderCardSkeleton } from './components/Skeleton';
 import { useSidebar } from './components/AdminGuard';
 import { useSearchParams } from 'next/navigation';
@@ -29,6 +29,12 @@ function AdminContent() {
   const [role, setRole] = useState<'manager' | 'staff'>('staff');
 
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
+  const [historyOrders, setHistoryOrders] = useState<Order[]>([]);
+  const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const [firstVisible, setFirstVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const [isFetchingHistory, setIsFetchingHistory] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
   const prevOrderCount = useRef<number | null>(null);
 
   const handleMessageCountChange = useCallback((orderId: string, count: number) => {
@@ -78,22 +84,20 @@ function AdminContent() {
     };
 
     fetchInfo();
+  }, [restaurantId]);
 
-    console.log(`[AdminPage] Starting real-time listener for: ${restaurantId}`);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsLoading(true);
+  // REAL-TIME LISTENER FOR ACTIVE ORDERS
+  useEffect(() => {
+    if (!restaurantId || showCompleted) return;
 
     const q = query(
       collection(db, 'orders'),
       where('restaurantId', '==', restaurantId),
+      where('status', '!=', 'completed'),
       limit(100)
     );
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      console.log(`[AdminPage] Snapshot update: Found ${querySnapshot.size} orders`);
-      
-      // (Notifications handled globally in AdminGuard)
-
       const fetchedOrders: Order[] = [];
       querySnapshot.forEach((doc) => {
         const data = doc.data();
@@ -111,40 +115,83 @@ function AdminContent() {
       });
 
       setOrders(sortedOrders);
-
-      // Cleanup message counts for completed or missing orders
-      setMessageCounts(prev => {
-        const newCounts = { ...prev };
-        let changed = false;
-        Object.keys(newCounts).forEach(orderId => {
-          const order = fetchedOrders.find(o => o.id === orderId);
-          if (!order || order.status === 'completed') {
-            delete newCounts[orderId];
-            changed = true;
-          }
-        });
-        return changed ? newCounts : prev;
-      });
-
       setIsLoading(false);
     }, (error) => {
-      console.error("[AdminPage] Firestore error:", error);
+      console.error("[AdminPage] Active orders listener error:", error);
       setIsLoading(false);
     });
 
     return () => unsubscribe();
-  }, [restaurantId, refreshKey]);
+  }, [restaurantId, showCompleted]);
 
-  // Notifications are now handled inside the Firestore listener for better performance
+  // PAGINATED FETCH FOR HISTORY
+  const fetchHistory = useCallback(async (direction: 'next' | 'prev' | 'initial' = 'initial') => {
+    if (!restaurantId) return;
+    setIsFetchingHistory(true);
 
-  const filteredOrders = orders.filter(order => {
-    const matchesStatus = showCompleted ? order.status === 'completed' : order.status !== 'completed';
-    const matchesSearch = searchQuery === '' || 
-      order.table_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    try {
+      let q = query(
+        collection(db, 'orders'),
+        where('restaurantId', '==', restaurantId),
+        where('status', '==', 'completed'),
+        orderBy('created_at', 'desc')
+      );
+
+      if (direction === 'next' && lastVisible) {
+        q = query(q, startAfter(lastVisible), limit(10));
+      } else if (direction === 'prev' && firstVisible) {
+        q = query(q, endBefore(firstVisible), limitToLast(10));
+      } else {
+        q = query(q, limit(10));
+      }
+
+      const snapshot = await getDocs(q);
+      const fetched: Order[] = [];
+      
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        fetched.push({
+          id: doc.id,
+          ...data,
+          created_at: data.created_at?.toDate ? data.created_at.toDate() : data.created_at
+        } as Order);
+      });
+
+      if (fetched.length > 0) {
+        setHistoryOrders(fetched);
+        setFirstVisible(snapshot.docs[0]);
+        setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
+        if (direction === 'next') setPage(p => p + 1);
+        if (direction === 'prev') setPage(p => Math.max(1, p - 1));
+        if (direction === 'initial') {
+          setPage(1);
+          setHasMore(snapshot.docs.length === 10);
+        }
+      } else if (direction === 'next') {
+        setHasMore(false);
+      }
+    } catch (err) {
+      console.error("Error fetching history:", err);
+    } finally {
+      setIsFetchingHistory(false);
+      setIsLoading(false);
+    }
+  }, [restaurantId, lastVisible, firstVisible]);
+
+  useEffect(() => {
+    if (showCompleted && restaurantId) {
+      fetchHistory('initial');
+    }
+  }, [showCompleted, restaurantId, refreshKey]);
+
+  const filteredOrders = showCompleted ? historyOrders : orders;
+  const matchesSearch = (order: Order) => {
+    if (searchQuery === '') return true;
+    return order.table_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order.items.some(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()));
-    
-    return matchesStatus && matchesSearch;
-  });
+  };
+
+  const displayOrders = filteredOrders.filter(matchesSearch);
 
   const { isCollapsed, setIsCollapsed } = useSidebar();
 
@@ -272,18 +319,50 @@ function AdminContent() {
       {/* Scrollable Content Area */}
       <main className="flex-1 overflow-y-auto p-4 sm:p-6 pb-24">
         <div className="container mx-auto">
-          {isLoading ? (
+          {isLoading || isFetchingHistory ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
               {[...Array(8)].map((_, i) => (
                 <OrderCardSkeleton key={i} />
               ))}
             </div>
-          ) : filteredOrders.length === 0 ? (
+          ) : displayOrders.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 text-secondary-text bg-card rounded-2xl border border-white/5">
               <p className="text-lg">{showCompleted ? 'History is empty' : 'No active orders'}</p>
             </div>
           ) : (
-            <OrderList orders={filteredOrders} onMessageCountChange={handleMessageCountChange} />
+            <>
+              <OrderList orders={displayOrders} onMessageCountChange={handleMessageCountChange} />
+              
+              {showCompleted && (
+                <div className="mt-12 flex items-center justify-center gap-6">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => fetchHistory('prev')}
+                    disabled={page === 1}
+                    className="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-primary-text font-bold hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                  >
+                    <ChevronLeft size={20} />
+                    Previous
+                  </motion.button>
+                  
+                  <div className="text-secondary-text font-black tracking-widest uppercase text-xs">
+                    Page {page}
+                  </div>
+
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => fetchHistory('next')}
+                    disabled={!hasMore}
+                    className="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-primary-text font-bold hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                  >
+                    Next
+                    <ChevronRight size={20} />
+                  </motion.button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </main>

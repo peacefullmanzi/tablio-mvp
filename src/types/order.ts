@@ -16,4 +16,5 @@ export interface Order {
   table_number: string;
   status: OrderStatus;
   created_at: number | Date | unknown; // Unknown allows for Firebase Timestamp compatibility in frontend
+  createdAt?: number | Date | unknown;
 }

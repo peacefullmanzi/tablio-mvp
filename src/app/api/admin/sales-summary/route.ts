@@ -12,54 +12,74 @@ export async function GET(request: Request) {
     }
 
     const { restaurantId } = auth;
-    
-    // Fetch all orders for this restaurant
+    const url = new URL(request.url);
+    const filter = url.searchParams.get('filter') || 'thisMonth'; // today, thisWeek, thisMonth
+
+    let startDate = new Date();
+    startDate.setHours(0, 0, 0, 0);
+
+    if (filter === 'thisWeek') {
+      const day = startDate.getDay();
+      const diff = startDate.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+      startDate.setDate(diff);
+    } else if (filter === 'thisMonth') {
+      startDate.setDate(1);
+    }
+
+    // Fetch orders for this restaurant with filter
+    // Note: To support legacy data, we check both createdAt and created_at
+    // But for the sake of efficient Firestore queries in MVP, we'll fetch a reasonable chunk and filter in memory
+    // In production, you'd use a proper timestamp index.
     const ordersSnapshot = await adminDb.collection('orders')
       .where('restaurantId', '==', restaurantId)
+      .where('status', '==', 'completed')
       .get();
       
     let totalRevenue = 0;
-    const totalOrders = ordersSnapshot.size;
-    const recentOrders: any[] = [];
+    const ordersData: any[] = [];
     
-    // Grouping by day
-    const salesByDay: Record<string, number> = {};
-
     ordersSnapshot.forEach(doc => {
       const data = doc.data();
-      const total = data.total || 0;
-      totalRevenue += total;
+      const timestamp = data.createdAt || data.created_at;
+      const orderDate = timestamp?.toDate ? timestamp.toDate() : new Date(timestamp);
       
-      const dateStr = data.created_at?.toDate ? data.created_at.toDate().toISOString().split('T')[0] : 'Unknown';
-      if (!salesByDay[dateStr]) salesByDay[dateStr] = 0;
-      salesByDay[dateStr] += total;
-      
-      // push to recent orders (we'll sort later and keep top 10)
-      recentOrders.push({
-        id: doc.id,
-        table_number: data.table_number,
-        total: data.total,
-        status: data.status,
-        created_at: data.created_at?.toDate ? data.created_at.toDate().toISOString() : null,
-      });
+      if (orderDate >= startDate) {
+        const total = data.total || 0;
+        totalRevenue += total;
+        
+        ordersData.push({
+          id: doc.id,
+          total,
+          date: orderDate.toISOString(),
+          dateLabel: orderDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        });
+      }
     });
-    
-    recentOrders.sort((a, b) => {
-      if (!a.created_at) return 1;
-      if (!b.created_at) return -1;
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+
+    // Sort by date ascending for chart
+    ordersData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    // Group by day for the chart
+    const dailyData: Record<string, number> = {};
+    ordersData.forEach(order => {
+      const label = order.dateLabel;
+      dailyData[label] = (dailyData[label] || 0) + order.total;
     });
+
+    const chartData = Object.entries(dailyData).map(([name, revenue]) => ({
+      name,
+      revenue
+    }));
 
     return NextResponse.json({
       success: true,
       totalRevenue,
-      totalOrders,
-      salesByDay,
-      recentOrders: recentOrders.slice(0, 10)
+      ordersCount: ordersData.length,
+      chartData,
+      recentOrders: ordersData.slice(-10).reverse() // Last 10
     });
   } catch (error: unknown) {
     console.error('Error fetching sales summary:', error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json({ error: 'Internal Server Error', details: errorMessage }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

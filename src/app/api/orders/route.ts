@@ -116,6 +116,7 @@ export async function POST(request: Request) {
       table_number: tableNumber.trim(),
       status: 'pending' as const,
       created_at: FieldValue.serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
     };
 
     const docRef = await adminDb.collection('orders').add(orderData);

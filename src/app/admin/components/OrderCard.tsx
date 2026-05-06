@@ -3,7 +3,7 @@
 import { Order, OrderStatus } from '@/types/order';
 import { Clock, CheckCircle, ChefHat, CheckSquare, MessageCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, formatDate } from '@/lib/utils';
 import { collection, query, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import AdminChat from './AdminChat';
@@ -63,13 +63,8 @@ export default function OrderCard({ order, onMessageCountChange }: OrderCardProp
     }
   };
 
-  const formatTime = (timestamp: unknown) => {
-    if (!timestamp) return '';
-    // Handle Firebase Timestamp or standard JS Date
-    const date = (timestamp as { toDate?: () => Date }).toDate 
-      ? (timestamp as { toDate: () => Date }).toDate() 
-      : new Date(timestamp as string | number | Date);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const formatTime = (timestamp: any) => {
+    return formatDate(timestamp);
   };
 
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
