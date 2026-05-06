@@ -216,7 +216,7 @@ function SalesContent() {
                     }}
                     itemStyle={{ color: '#10B981', fontWeight: 'bold', fontSize: '14px' }}
                     labelStyle={{ color: '#9CA3AF', marginBottom: '4px', fontWeight: 'bold', fontSize: '10px', textTransform: 'uppercase' }}
-                    formatter={(value: number) => [formatPrice(value), 'Revenue']}
+                    formatter={(value: any) => [formatPrice(Number(value) || 0), 'Revenue']}
                   />
                   <Area 
                     type="monotone" 
