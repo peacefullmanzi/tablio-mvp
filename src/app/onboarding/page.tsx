@@ -49,7 +49,7 @@ export default function OnboardingPage() {
   const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
   const inviteCode = searchParams?.get('code');
   const IS_INVITE_ONLY = true;
-  const SECRET_CODE = 'tablio_admin'; // Change this as needed
+  const SECRET_CODE = process.env.NEXT_PUBLIC_ONBOARDING_INVITE_CODE || '';
 
   if (IS_INVITE_ONLY && inviteCode !== SECRET_CODE) {
     return (

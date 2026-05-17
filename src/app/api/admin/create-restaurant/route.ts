@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
 import { isStrongPin, hashPin } from '@/lib/admin-utils';
 import { parseAndValidateBody, requireString } from '@/lib/api-security';
+import { FieldValue } from 'firebase-admin/firestore';
 
 /**
  * POST /api/admin/create-restaurant
@@ -48,7 +49,7 @@ export async function POST(request: Request) {
       name,
       adminPinHash,
       staffPinHash,
-      createdAt: new Date(),
+      createdAt: FieldValue.serverTimestamp(),
       failedAttempts: 0,
       lockUntil: null,
       status: 'active',

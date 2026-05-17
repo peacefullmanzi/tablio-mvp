@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import { collection, query, where, onSnapshot, limit, orderBy } from 'firebase/firestore';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useStore } from '@/lib/store';
 import AdminSidebar from './AdminSidebar';
@@ -10,7 +10,7 @@ import { createContext, useContext } from 'react';
 import { adminFetch } from '@/lib/api-client';
 import { requestNotificationPermission } from '@/lib/fcm';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, X, Bell } from 'lucide-react';
+import { MessageSquare, X } from 'lucide-react';
 
 interface SidebarContextType {
   isCollapsed: boolean;
@@ -55,6 +55,13 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
   const [hasMounted, setHasMounted] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [activeNotification, setActiveNotification] = useState<{ table: string; orderId: string; type: 'chat' | 'order' } | null>(null);
+
+  // Auto-dismiss notification banner after 8 seconds
+  useEffect(() => {
+    if (!activeNotification) return;
+    const timer = setTimeout(() => setActiveNotification(null), 8000);
+    return () => clearTimeout(timer);
+  }, [activeNotification]);
 
   const getRestaurantId = () => ridParam || localStorage.getItem('tablio_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID;
 

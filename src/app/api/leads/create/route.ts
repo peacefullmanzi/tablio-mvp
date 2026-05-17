@@ -53,6 +53,10 @@ export async function POST(request: Request) {
     const cleanEmail = sanitize(email).toLowerCase();
     const cleanBusiness = sanitize(businessType || 'restaurant');
 
+    // Validate businessType against allowed values
+    const VALID_BUSINESS_TYPES = ['restaurant', 'hotel', 'cafe', 'other'];
+    const normalizedBusiness = VALID_BUSINESS_TYPES.includes(cleanBusiness) ? cleanBusiness : 'other';
+
     // Check for duplicate email
     const existing = await adminDb.collection('leads').where('email', '==', cleanEmail).limit(1).get();
     if (!existing.empty) {
@@ -64,7 +68,7 @@ export async function POST(request: Request) {
     await adminDb.collection('leads').add({
       name: cleanName,
       email: cleanEmail,
-      businessType: cleanBusiness,
+      businessType: normalizedBusiness,
       createdAt: new Date(),
       source: 'landing_page',
     });

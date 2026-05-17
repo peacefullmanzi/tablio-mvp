@@ -130,7 +130,6 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: AdminSideb
               const rid = getRestaurantId();
               // Clear current session to force re-auth
               localStorage.removeItem('tablio_token');
-              localStorage.removeItem(`tablio_admin_auth_${rid}`);
               router.push(`/admin/login${rid ? `?rid=${rid}` : ''}`);
             }}
             className={`w-full flex items-center px-4 py-3 rounded-xl font-bold transition-all ${
@@ -155,11 +154,6 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: AdminSideb
           <button
             onClick={() => {
               const rid = getRestaurantId();
-              if (rid) {
-                localStorage.removeItem(`tablio_admin_auth_${rid}`);
-              } else {
-                localStorage.removeItem('tablio_admin_auth');
-              }
               localStorage.removeItem('tablio_token');
               router.push(`/admin/login${rid ? `?rid=${rid}` : ''}`);
             }}

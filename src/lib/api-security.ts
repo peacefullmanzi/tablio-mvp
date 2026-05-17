@@ -20,7 +20,7 @@ export async function parseAndValidateBody(
   if (contentLength && parseInt(contentLength, 10) > MAX_BODY_SIZE) {
     return {
       error: NextResponse.json(
-        { error: 'Request body too large. Maximum size is 1MB.' },
+        { error: 'Request body too large. Maximum size is 5MB.' },
         { status: 413 }
       ),
     };
@@ -33,7 +33,7 @@ export async function parseAndValidateBody(
     if (text.length > MAX_BODY_SIZE) {
       return {
         error: NextResponse.json(
-          { error: 'Request body too large. Maximum size is 1MB.' },
+          { error: 'Request body too large. Maximum size is 5MB.' },
           { status: 413 }
         ),
       };
@@ -73,7 +73,7 @@ export async function requireAdminPin(
   }
 
   // Pass restaurantId to the validator to support multi-tenant PINs
-  const { isValid, role } = await validateAdminPin(pin, typeof restaurantId === 'string' ? restaurantId : undefined);
+  const { isValid } = await validateAdminPin(pin, typeof restaurantId === 'string' ? restaurantId : undefined);
   if (!isValid) {
     return NextResponse.json(
       { error: 'Unauthorized: Invalid PIN' },

@@ -5,7 +5,7 @@ import { collection, query, onSnapshot, orderBy, where, limit, startAfter, endBe
 import { db } from '@/lib/firebase';
 import { Order } from '@/types/order';
 import OrderList from './components/OrderList';
-import { RefreshCcw, Bell, BellOff, History, Inbox, Trash2, MessageSquare, Search, Menu, ChevronLeft, ChevronRight } from 'lucide-react';
+import { RefreshCcw, Bell, BellOff, History, Inbox, Search, Menu, ChevronLeft, ChevronRight } from 'lucide-react';
 import { OrderCardSkeleton } from './components/Skeleton';
 import { useSidebar } from './components/AdminGuard';
 import { useSearchParams } from 'next/navigation';
@@ -44,7 +44,7 @@ function AdminContent() {
     });
   }, []);
 
-  const activeChatRooms = Object.values(messageCounts).reduce((a, b) => a + b, 0);
+
 
   const handleRefresh = () => {
     setRefreshKey(prev => prev + 1);
@@ -93,6 +93,7 @@ function AdminContent() {
     const q = query(
       collection(db, 'orders'),
       where('restaurantId', '==', restaurantId),
+      where('status', '!=', 'completed'),
       limit(100)
     );
 
@@ -108,7 +109,6 @@ function AdminContent() {
       });
 
       const sortedOrders = fetchedOrders
-        .filter(o => o.status !== 'completed')
         .sort((a, b) => {
           const dateA = a.created_at instanceof Date ? a.created_at.getTime() : 0;
           const dateB = b.created_at instanceof Date ? b.created_at.getTime() : 0;

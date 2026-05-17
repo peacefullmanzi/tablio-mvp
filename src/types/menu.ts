@@ -6,4 +6,5 @@ export interface MenuItem {
   category: string;
   image?: string;
   description?: string;
+  available?: boolean;
 }

@@ -79,8 +79,6 @@ function LoginContent() {
       const data = await response.json();
 
       if (response.ok) {
-        const authKey = `tablio_admin_auth_${restaurantId}`;
-        localStorage.setItem(authKey, pin);
         localStorage.setItem('tablio_token', data.token); // Store JWT
         router.push(`/admin?rid=${restaurantId}`);
       } else {

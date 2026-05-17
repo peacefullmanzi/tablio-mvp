@@ -22,23 +22,6 @@ export default function OrderList({ orders, onMessageCountChange }: OrderListPro
     );
   }
 
-  // Sort orders by creation time (newest first for MVP clarity)
-  const sortedOrders = [...orders].sort((a, b) => {
-    const getMillis = (ts: unknown): number => {
-      if (!ts) return 0;
-      if (typeof ts === 'number') return ts;
-      if (ts instanceof Date) return ts.getTime();
-      if (typeof ts === 'object' && ts !== null && 'toMillis' in ts && typeof (ts as { toMillis: () => number }).toMillis === 'function') {
-        return (ts as { toMillis: () => number }).toMillis();
-      }
-      return 0;
-    };
-    
-    const timeA = getMillis(a.created_at);
-    const timeB = getMillis(b.created_at);
-    return timeB - timeA;
-  });
-
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -62,7 +45,7 @@ export default function OrderList({ orders, onMessageCountChange }: OrderListPro
       className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
     >
       <AnimatePresence mode='popLayout'>
-        {sortedOrders.map((order) => (
+        {orders.map((order) => (
           <motion.div 
             key={order.id} 
             variants={item}
