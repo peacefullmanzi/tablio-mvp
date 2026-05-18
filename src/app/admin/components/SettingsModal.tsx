@@ -23,6 +23,8 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const [success, setSuccess] = useState(false);
   const [restaurantName, setRestaurantName] = useState('My Restaurant');
   const [isDownloading, setIsDownloading] = useState(false);
+  const [enableTableLock, setEnableTableLock] = useState(false);
+  const [tableNumberInput, setTableNumberInput] = useState('');
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const getRestaurantId = () => {
@@ -134,7 +136,9 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
     const qrImg = new Image();
     qrImg.crossOrigin = 'anonymous';
-    const menuUrl = `${window.location.origin}/r/${restaurantId}`;
+    const menuUrl = enableTableLock && tableNumberInput.trim()
+      ? `${window.location.origin}/r/${restaurantId}?table=${encodeURIComponent(tableNumberInput.trim())}`
+      : `${window.location.origin}/r/${restaurantId}`;
     qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=1000x1000&data=${encodeURIComponent(menuUrl)}&margin=10`;
 
     qrImg.onload = () => {
@@ -352,6 +356,42 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     </p>
                   </div>
                   
+                  {/* Table Lock Feature */}
+                  <div className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="text-sm font-bold text-primary-text flex items-center gap-2">
+                          <Lock size={16} className="text-accent" />
+                          Lock Table Number
+                        </h4>
+                        <p className="text-xs text-secondary-text">Lock orders to a specific table.</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={enableTableLock}
+                          onChange={(e) => setEnableTableLock(e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent"></div>
+                      </label>
+                    </div>
+
+                    {enableTableLock && (
+                      <div className="space-y-2 animate-in slide-in-from-top-2 duration-200">
+                        <label className="block text-xs font-black text-secondary-text uppercase tracking-widest ml-1">Table Number</label>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={tableNumberInput}
+                          onChange={(e) => setTableNumberInput(e.target.value)}
+                          placeholder="e.g. 5"
+                          className="w-full bg-background border-2 border-white/5 rounded-xl px-4 py-3 text-sm font-bold text-primary-text placeholder-white/20 focus:border-accent outline-none transition-all"
+                        />
+                      </div>
+                    )}
+                  </div>
+                  
                   <div className="space-y-3 pt-4">
                     <button
                       onClick={handleDownloadQR}
@@ -375,6 +415,12 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   <div className="w-full max-w-[280px] aspect-3/4 bg-white rounded-3xl p-8 flex flex-col items-center justify-between shadow-2xl ring-1 ring-black/5 relative overflow-hidden group">
                     <div className="absolute inset-0 bg-accent/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                     
+                    {enableTableLock && tableNumberInput.trim() && (
+                      <div className="absolute top-4 right-4 bg-accent text-background px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-lg animate-pulse z-20">
+                        Table {tableNumberInput.trim()}
+                      </div>
+                    )}
+
                     <div className="text-center z-10">
                       <p className="text-[10px] font-black text-black/40 uppercase tracking-widest mb-1">Welcome to</p>
                       <h4 className="text-xl font-black text-black uppercase tracking-tight leading-tight">{restaurantName}</h4>
@@ -383,7 +429,11 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     <div className="w-full aspect-square bg-black/5 rounded-2xl flex items-center justify-center p-2 z-10">
                       {/* Placeholder QR using the same API for preview */}
                       <img 
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`${window.location.origin}/r/${restaurantId}`)}`}
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(
+                          enableTableLock && tableNumberInput.trim()
+                            ? `${window.location.origin}/r/${restaurantId}?table=${encodeURIComponent(tableNumberInput.trim())}`
+                            : `${window.location.origin}/r/${restaurantId}`
+                        )}`}
                         alt="QR Code Preview"
                         className="w-full h-full"
                       />
