@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Shield, Check, AlertCircle, Loader2, QrCode, Download, Printer, FileText } from 'lucide-react';
+import { X, Shield, Check, AlertCircle, Loader2, QrCode, Download, Printer, FileText, Lock } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
