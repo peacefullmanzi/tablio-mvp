@@ -15,20 +15,20 @@ function LoginContent() {
   const [restaurantName, setRestaurantName] = useState<string | null>(null);
   const router = useRouter();
 
-  const getRestaurantId = () => ridParam || localStorage.getItem('tablio_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID;
+  const getRestaurantId = () => ridParam || localStorage.getItem('temfy_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID;
 
   useEffect(() => {
-    const restaurantId = ridParam || localStorage.getItem('tablio_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID;
+    const restaurantId = ridParam || localStorage.getItem('temfy_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID;
     
     // Sync the RID to local storage if it's in the URL
-    if (ridParam && ridParam !== localStorage.getItem('tablio_rid')) {
+    if (ridParam && ridParam !== localStorage.getItem('temfy_rid')) {
       console.log(`[Login] Switching restaurant context to: ${ridParam}`);
-      localStorage.setItem('tablio_rid', ridParam);
+      localStorage.setItem('temfy_rid', ridParam);
       // If we switch restaurants, we MUST clear the old token to avoid collisions
-      localStorage.removeItem('tablio_token');
+      localStorage.removeItem('temfy_token');
     }
 
-    const token = localStorage.getItem('tablio_token');
+    const token = localStorage.getItem('temfy_token');
     if (token && restaurantId) {
       router.push(`/admin?rid=${restaurantId}`);
     }
@@ -79,7 +79,7 @@ function LoginContent() {
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem('tablio_token', data.token); // Store JWT
+        localStorage.setItem('temfy_token', data.token); // Store JWT
         router.push(`/admin?rid=${restaurantId}`);
       } else {
         setError(data.error || 'Invalid credentials');

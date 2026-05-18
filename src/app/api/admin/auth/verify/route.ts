@@ -5,19 +5,29 @@ import { headers } from 'next/headers';
 import { parseAndValidateBody, requireRestaurantId } from '@/lib/api-security';
 import jwt from 'jsonwebtoken';
 
-// In-memory rate limiting (IP-based)
 const RATE_LIMIT_MAP = new Map<string, { count: number; resetTime: number }>();
 const MAX_REQUESTS = 5;
-const WINDOW_MS = 60 * 1000; // 1 minute
+const WINDOW_MS = 60 * 1000;
+
+function cleanupRateLimitMap() {
+  const now = Date.now();
+  for (const [key, value] of RATE_LIMIT_MAP.entries()) {
+    if (now > value.resetTime) {
+      RATE_LIMIT_MAP.delete(key);
+    }
+  }
+}
+
+setInterval(cleanupRateLimitMap, WINDOW_MS);
 
 export async function POST(request: Request) {
+  cleanupRateLimitMap();
+
   try {
-    // 1. Parse body with 1MB size limit
     const parsed = await parseAndValidateBody(request);
     if ('error' in parsed) return parsed.error;
     const body = parsed.data;
 
-    // 2. Validate restaurantId
     const restaurantError = requireRestaurantId(body);
     if (restaurantError) return restaurantError;
     const restaurantId = body.restaurantId as string;
@@ -26,7 +36,6 @@ export async function POST(request: Request) {
     const headersList = await headers();
     const ip = headersList.get('x-forwarded-for') || 'unknown';
 
-    // 1. Server-side Rate Limiting (IP)
     const now = Date.now();
     const rateData = RATE_LIMIT_MAP.get(ip);
 

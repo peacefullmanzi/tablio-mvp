@@ -4,19 +4,27 @@ import { parseAndValidateBody, requireRestaurantId } from '@/lib/api-security';
 import { FieldValue } from 'firebase-admin/firestore';
 import * as admin from 'firebase-admin';
 
-/**
- * POST /api/orders — Server-side order creation
- * 
- * SECURITY: Prices are fetched from the database, NOT trusted from the client.
- * The client sends item IDs + quantities. The server looks up real prices.
- *
- * Body: {
- *   restaurantId: string,
- *   table_number: string,
- *   items: [{ id: string, quantity: number }]
- * }
- */
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS?.split(',') || [
+  'http://localhost:3000',
+];
+
+function corsResponse(data: unknown, status = 200): NextResponse {
+  return NextResponse.json(data, {
+    status,
+    headers: {
+      'Access-Control-Allow-Origin': ALLOWED_ORIGINS.join(', '),
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Allow-Credentials': 'true',
+    },
+  });
+}
+
 export async function POST(request: Request) {
+  if (request.method === 'OPTIONS') {
+    return corsResponse({}, 204);
+  }
+
   try {
     // 1. Parse body with size limit (1MB)
     const parsed = await parseAndValidateBody(request);

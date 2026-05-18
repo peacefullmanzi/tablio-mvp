@@ -33,7 +33,7 @@ function ChatContent() {
 
   const { setHasNewMessages } = useStore();
   
-  const getRestaurantId = () => ridParam || localStorage.getItem('tablio_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID;
+  const getRestaurantId = () => ridParam || localStorage.getItem('temfy_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID;
 
   // Clear notifications on mount
   useEffect(() => {
@@ -44,6 +44,8 @@ function ChatContent() {
   useEffect(() => {
     const restaurantId = getRestaurantId();
     if (!restaurantId) return;
+
+    console.log('[AdminChat] Setting up message listener for restaurant:', restaurantId);
 
     const q = query(
       collection(db, 'messages'),

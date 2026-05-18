@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
 
-const SUPER_ADMIN_KEY = process.env.SUPER_ADMIN_KEY || 'tablio_master_2026';
+const SUPER_ADMIN_KEY = process.env.SUPER_ADMIN_KEY || 'temfy_master_2026';
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get('x-super-admin-key');

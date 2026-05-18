@@ -1,26 +1,56 @@
 import * as admin from 'firebase-admin';
 
+let adminDbInstance: admin.firestore.Firestore | null = null;
+let adminAuthInstance: admin.auth.Auth | null = null;
 
-
-if (!admin.apps.length) {
-    try {
-        if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
-            admin.initializeApp({
-                credential: admin.credential.cert({
-                    projectId: process.env.FIREBASE_PROJECT_ID,
-                    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-                    privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-                }),
-            });
-            console.log('[FirebaseAdmin] Initialized successfully');
-        } else {
-            console.warn('[FirebaseAdmin] Missing environment variables. Skipping initialization.');
-        }
-    } catch (error) {
-        console.error('[FirebaseAdmin] Initialization error:', error);
+function getFirestoreInstance(): admin.firestore.Firestore {
+  if (!adminDbInstance) {
+    const required = ['FIREBASE_PROJECT_ID', 'FIREBASE_CLIENT_EMAIL', 'FIREBASE_PRIVATE_KEY'];
+    const missing = required.filter(key => !process.env[key]);
+    if (missing.length > 0) {
+      throw new Error(`Missing env vars: ${missing.join(', ')}`);
     }
+    if (!admin.apps.length) {
+      admin.initializeApp({
+        credential: admin.credential.cert({
+          projectId: process.env.FIREBASE_PROJECT_ID!,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL!,
+          privateKey: process.env.FIREBASE_PRIVATE_KEY!.replace(/\\n/g, '\n'),
+        }),
+      });
+    }
+    adminDbInstance = admin.firestore();
+  }
+  return adminDbInstance;
 }
 
-// Safely export proxies that only call firestore/auth if the app exists
-export const adminDb = admin.apps.length ? admin.firestore() : null as unknown as admin.firestore.Firestore;
-export const adminAuth = admin.apps.length ? admin.auth() : null as unknown as admin.auth.Auth;
+function getAuthInstance(): admin.auth.Auth {
+  if (!adminAuthInstance) {
+    getFirestoreInstance();
+    adminAuthInstance = admin.auth();
+  }
+  return adminAuthInstance;
+}
+
+const adminDbProxy = new Proxy({}, {
+  get(_target, prop) {
+    return getFirestoreInstance()[prop as keyof admin.firestore.Firestore];
+  }
+}) as unknown as admin.firestore.Firestore;
+
+const adminAuthProxy = new Proxy({}, {
+  get(_target, prop) {
+    return getAuthInstance()[prop as keyof admin.auth.Auth];
+  }
+}) as unknown as admin.auth.Auth;
+
+export const adminDb = adminDbProxy;
+export const adminAuth = adminAuthProxy;
+
+export function getAdminDb(): admin.firestore.Firestore {
+  return getFirestoreInstance();
+}
+
+export function getAdminAuth(): admin.auth.Auth {
+  return getAuthInstance();
+}

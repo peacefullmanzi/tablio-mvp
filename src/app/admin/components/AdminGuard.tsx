@@ -10,7 +10,7 @@ import { createContext, useContext } from 'react';
 import { adminFetch } from '@/lib/api-client';
 import { requestNotificationPermission } from '@/lib/fcm';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, X } from 'lucide-react';
+import { MessageSquare, X, Bell } from 'lucide-react';
 
 interface SidebarContextType {
   isCollapsed: boolean;
@@ -54,7 +54,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
   const [authorized, setAuthorized] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [activeNotification, setActiveNotification] = useState<{ table: string; orderId: string; type: 'chat' | 'order' } | null>(null);
+  const [activeNotification, setActiveNotification] = useState<{ table: string; orderId: string; type: 'chat' | 'order' | 'request' } | null>(null);
 
   // Auto-dismiss notification banner after 8 seconds
   useEffect(() => {
@@ -63,7 +63,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
     return () => clearTimeout(timer);
   }, [activeNotification]);
 
-  const getRestaurantId = () => ridParam || localStorage.getItem('tablio_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID;
+  const getRestaurantId = () => ridParam || localStorage.getItem('temfy_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID;
 
   useEffect(() => {
     setTimeout(() => setHasMounted(true), 0);
@@ -83,7 +83,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
 
     const verifyAccess = async () => {
       const restaurantId = getRestaurantId();
-      const token = localStorage.getItem('tablio_token');
+      const token = localStorage.getItem('temfy_token');
 
       if (!token || !restaurantId) {
         router.push(`/admin/login${restaurantId ? `?rid=${restaurantId}` : ''}`);
@@ -96,11 +96,11 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
         const data = await response.json();
 
         if (response.ok && data.restaurantId === restaurantId) {
-          localStorage.setItem('tablio_role', data.role);
+          localStorage.setItem('temfy_role', data.role);
           setAuthorized(true);
         } else {
           console.warn(`[AdminGuard] Session mismatch or invalid. Expected: ${restaurantId}, Got: ${data.restaurantId}`);
-          localStorage.removeItem('tablio_token');
+          localStorage.removeItem('temfy_token');
           router.push(`/admin/login?rid=${restaurantId}`);
           setAuthorized(false);
         }
@@ -241,9 +241,53 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
       }
     });
 
+    // --- GLOBAL CUSTOMER REQUESTS LISTENER ---
+    const qRequests = query(
+      collection(db, 'customerRequests'),
+      where('restaurantId', '==', restaurantId),
+      where('status', '==', 'pending')
+    );
+
+    const unsubscribeRequests = onSnapshot(qRequests, (snapshot) => {
+      const newRequests = snapshot.docChanges().filter(change => {
+        if (change.type === 'added') {
+          const data = change.doc.data();
+          const createdAt = data.createdAt?.toDate?.() || new Date();
+          return createdAt.getTime() > startTime.getTime() - 5000;
+        }
+        return false;
+      });
+
+      if (newRequests.length > 0) {
+        const firstRequest = newRequests[0].doc.data();
+        setActiveNotification({
+          table: firstRequest.tableNumber,
+          orderId: newRequests[0].doc.id,
+          type: 'request'
+        });
+
+        // Native Background Notification
+        if (Notification.permission === 'granted') {
+          const typeText = firstRequest.type === 'call_staff' ? 'Needs waiter assistance.' : `Bill requested via ${firstRequest.paymentMethod || 'cash'}.`;
+          new Notification(`🔔 Table ${firstRequest.tableNumber} Request`, {
+            body: typeText,
+            icon: '/logo.svg'
+          });
+        }
+
+        // Vibrate and Play Sound (Foreground)
+        if ('vibrate' in navigator) {
+          navigator.vibrate([300, 100, 300]);
+        }
+        const audio = new Audio(BELL_SOUND);
+        audio.play().catch(e => console.warn("Request sound blocked.", e));
+      }
+    });
+
     return () => {
       unsubscribe();
       unsubscribeOrders();
+      unsubscribeRequests();
     };
   }, [authorized, ridParam]);
 
@@ -278,20 +322,22 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
             >
               <div className="bg-red-600 text-white rounded-2xl shadow-2xl shadow-red-500/40 p-4 flex items-center justify-between border border-red-500/50">
                 <div className="flex items-center gap-4">
-                  <div className={`p-2 rounded-xl animate-pulse ${activeNotification.type === 'order' ? 'bg-amber-500/20 text-amber-500' : 'bg-white/20 text-white'}`}>
-                    <MessageSquare size={24} />
+                  <div className={`p-2 rounded-xl animate-pulse ${activeNotification.type === 'order' ? 'bg-amber-500/20 text-amber-500' : activeNotification.type === 'request' ? 'bg-blue-500/20 text-blue-400' : 'bg-white/20 text-white'}`}>
+                    {activeNotification.type === 'request' ? <Bell size={24} /> : <MessageSquare size={24} />}
                   </div>
                   <div>
                     <h4 className="font-black text-sm uppercase tracking-tight">
-                      {activeNotification.type === 'order' ? '⚡ New Order Arrived!' : '💬 New Message Received!'}
+                      {activeNotification.type === 'order' ? '⚡ New Order Arrived!' : activeNotification.type === 'request' ? '🔔 Assistance Requested!' : '💬 New Message Received!'}
                     </h4>
-                    <p className="text-xs opacity-90 font-medium">Table {activeNotification.table} • {activeNotification.type === 'order' ? 'Pending Kitchen' : `Session ${activeNotification.orderId.slice(-6).toUpperCase()}`}</p>
+                    <p className="text-xs opacity-90 font-medium">Table {activeNotification.table} • {activeNotification.type === 'order' ? 'Pending Kitchen' : activeNotification.type === 'request' ? 'Needs Attention' : `Session ${activeNotification.orderId.slice(-6).toUpperCase()}`}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => {
                       if (activeNotification.type === 'order') {
+                        router.push(`/admin?rid=${getRestaurantId()}`);
+                      } else if (activeNotification.type === 'request') {
                         router.push(`/admin?rid=${getRestaurantId()}`);
                       } else {
                         router.push(`/admin/chat?rid=${getRestaurantId()}`);
@@ -300,7 +346,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
                     }}
                     className="bg-white text-red-600 px-4 py-2 rounded-xl text-xs font-black hover:bg-white/90 transition-all active:scale-95"
                   >
-                    {activeNotification.type === 'order' ? 'View Order' : 'Reply'}
+                    {activeNotification.type === 'order' ? 'View Order' : activeNotification.type === 'request' ? 'View Request' : 'Reply'}
                   </button>
                   <button
                     onClick={() => setActiveNotification(null)}

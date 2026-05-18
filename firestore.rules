@@ -89,6 +89,20 @@ service cloud.firestore {
     }
 
     // -----------------------------------------------------------------------
+    // CUSTOMER REQUESTS — Call Staff & Request Bill
+    // Customers can create requests, admins can read and update them
+    // -----------------------------------------------------------------------
+    match /customerRequests/{requestId} {
+      allow read: if true;
+      allow create: if request.resource.data.restaurantId is string
+                    && request.resource.data.tableNumber is string
+                    && request.resource.data.type in ['call_staff', 'request_bill']
+                    && request.resource.data.status == 'pending';
+      allow update: if true;
+      allow delete: if false;
+    }
+
+    // -----------------------------------------------------------------------
     // DEFAULT — Block everything else
     // -----------------------------------------------------------------------
     match /{document=**} {

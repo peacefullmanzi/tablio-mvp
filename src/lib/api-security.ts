@@ -173,11 +173,19 @@ export async function requireAdminAuth(
 
   const token = authHeader.split(' ')[1];
 
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) {
+    console.error('[requireAdminAuth] JWT_SECRET environment variable is not set');
+    return {
+      error: NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      ),
+    };
+  }
+
   try {
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET || 'fallback-secret'
-    ) as { restaurantId: string, role?: string };
+    const decoded = jwt.verify(token, jwtSecret) as { restaurantId: string, role?: string };
 
     if (!decoded.restaurantId) {
       return {

@@ -13,23 +13,34 @@ import { useStore } from '@/lib/store';
 import GlobalChat from '../../customer/components/GlobalChat';
 import { MessageCircle, UtensilsCrossed, ExternalLink, AlertTriangle } from 'lucide-react';
 import TemfyLogo from '@/components/ui/TemfyLogo';
+import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
+import QuickActions from '../../customer/components/QuickActions';
 
 interface RestaurantData {
   name: string;
 }
 
-export default function RestaurantMenuPage({ params }: { params: Promise<{ restaurantId: string }> }) {
-  const { restaurantId } = use(params);
+function RestaurantMenuContent({ restaurantId }: { restaurantId: string }) {
+  const searchParams = useSearchParams();
+  const tableParam = searchParams.get('table');
+  
   const [menuItems, setMenuItems] = useState<MenuItemType[]>([]);
   const [restaurant, setRestaurant] = useState<RestaurantData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeOrderId, setActiveOrderId] = useState<string | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const { tableNumber } = useStore();
+  const { tableNumber, setTableNumber, setRestaurantId } = useStore();
 
   useEffect(() => {
-    // Check for active order in local storage
+    if (tableParam && /^\d+$/.test(tableParam)) {
+      setTableNumber(tableParam);
+    }
+    setRestaurantId(restaurantId);
+  }, [tableParam, restaurantId, setTableNumber, setRestaurantId]);
+
+  useEffect(() => {
     const lastId = localStorage.getItem('last_order_id');
     if (lastId) {
       setTimeout(() => setActiveOrderId(lastId), 0);
@@ -39,7 +50,6 @@ export default function RestaurantMenuPage({ params }: { params: Promise<{ resta
       setIsLoading(true);
       setError(null);
       try {
-        // Parallel Fetch for speed optimization
         const [rDoc, querySnapshot] = await Promise.all([
           getDoc(doc(db, 'restaurants', restaurantId)),
           getDocs(query(collection(db, 'menus'), where('restaurantId', '==', restaurantId)))
@@ -192,6 +202,22 @@ export default function RestaurantMenuPage({ params }: { params: Promise<{ resta
         isOpen={isChatOpen}
         onClose={() => setIsChatOpen(false)}
       />
+      
+      <QuickActions restaurantId={restaurantId} />
     </div>
+  );
+}
+
+export default function RestaurantMenuPage({ params }: { params: Promise<{ restaurantId: string }> }) {
+  const { restaurantId } = use(params);
+  
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
+      </div>
+    }>
+      <RestaurantMenuContent restaurantId={restaurantId} />
+    </Suspense>
   );
 }

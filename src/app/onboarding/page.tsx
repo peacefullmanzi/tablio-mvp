@@ -61,7 +61,7 @@ export default function OnboardingPage() {
           <div className="space-y-2">
             <h1 className="text-3xl font-black text-primary-text tracking-tight">Invite Only</h1>
             <p className="text-secondary-text text-sm leading-relaxed">
-              Tablio onboarding is currently restricted to invited restaurants only. 
+              Temfy onboarding is currently restricted to invited restaurants only. 
               Please contact the administrator to get your setup code.
             </p>
           </div>

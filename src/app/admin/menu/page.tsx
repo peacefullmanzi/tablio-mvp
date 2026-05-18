@@ -34,13 +34,13 @@ function MenuContent() {
 
   // Unified restaurantId logic
   const getRestaurantId = () => {
-    return ridParam || localStorage.getItem('tablio_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID;
+    return ridParam || localStorage.getItem('temfy_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID;
   };
 
   useEffect(() => {
     const rid = getRestaurantId();
-    if (rid && rid !== localStorage.getItem('tablio_rid')) {
-      localStorage.setItem('tablio_rid', rid);
+    if (rid && rid !== localStorage.getItem('temfy_rid')) {
+      localStorage.setItem('temfy_rid', rid);
     }
   }, [ridParam]);
 

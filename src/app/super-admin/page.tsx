@@ -40,7 +40,7 @@ export default function SuperAdminPage() {
       if (response.ok) {
         setRestaurants(data.restaurants);
         setIsAuthenticated(true);
-        localStorage.setItem('tablio_master_key', key);
+        localStorage.setItem('temfy_master_key', key);
       } else {
         setError(data.error || 'Invalid Master Key');
       }
@@ -69,7 +69,7 @@ export default function SuperAdminPage() {
   };
 
   useEffect(() => {
-    const savedKey = localStorage.getItem('tablio_master_key');
+    const savedKey = localStorage.getItem('temfy_master_key');
     if (savedKey) {
       setMasterKey(savedKey);
       fetchRestaurants(savedKey);
@@ -201,7 +201,7 @@ export default function SuperAdminPage() {
           </div>
           <button 
             onClick={() => {
-              localStorage.removeItem('tablio_master_key');
+              localStorage.removeItem('temfy_master_key');
               setIsAuthenticated(false);
             }}
             className="p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:bg-zinc-800 transition-colors"

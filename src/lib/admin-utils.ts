@@ -1,42 +1,39 @@
 import { adminDb } from './firebase-admin';
 import bcrypt from 'bcryptjs';
 
-/**
- * Validates the admin PIN against the stored value.
- * Supports multi-tenant restaurant PINs and global fallback.
- */
 export async function validateAdminPin(pin: string, restaurantId?: string): Promise<{ isValid: boolean, role: 'manager' | 'staff' }> {
   if (!pin) return { isValid: false, role: 'staff' };
 
-  let adminStoredPin = process.env.NEXT_PUBLIC_ADMIN_PIN || "123456";
-  let staffStoredPin = "";
-  
+  let adminStoredPin: string | null = null;
+  let staffStoredPin: string | null = null;
+
   try {
-    // 1. Try to fetch from the specific restaurant record first
     if (restaurantId) {
       const rDoc = await adminDb.collection('restaurants').doc(restaurantId).get();
       if (rDoc.exists) {
-        if (rDoc.data()?.adminPinHash) adminStoredPin = rDoc.data()?.adminPinHash;
-        if (rDoc.data()?.staffPinHash) staffStoredPin = rDoc.data()?.staffPinHash;
+        adminStoredPin = rDoc.data()?.adminPinHash || null;
+        staffStoredPin = rDoc.data()?.staffPinHash || null;
       }
     } else {
-      // 2. Global fallback (for legacy or setup)
       const configDoc = await adminDb.collection('settings').doc('config').get();
       if (configDoc.exists && configDoc.data()?.adminPin) {
         adminStoredPin = configDoc.data()?.adminPin;
       }
     }
   } catch (err) {
-    console.warn('[validateAdminPin] Failed to fetch PIN, using fallback:', err);
+    console.warn('[validateAdminPin] Failed to fetch PIN:', err);
   }
 
-  // Check Admin PIN first
+  if (!adminStoredPin) {
+    console.warn('[validateAdminPin] No PIN configured for restaurant. Rejecting authentication.');
+    return { isValid: false, role: 'staff' };
+  }
+
   const isAdminHashed = adminStoredPin.startsWith('$2a$') || adminStoredPin.startsWith('$2b$');
   if (isAdminHashed ? bcrypt.compareSync(pin, adminStoredPin) : pin === adminStoredPin) {
     return { isValid: true, role: 'manager' };
   }
 
-  // Check Staff PIN if provided
   if (staffStoredPin) {
     const isStaffHashed = staffStoredPin.startsWith('$2a$') || staffStoredPin.startsWith('$2b$');
     if (isStaffHashed ? bcrypt.compareSync(pin, staffStoredPin) : pin === staffStoredPin) {

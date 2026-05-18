@@ -39,12 +39,12 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: AdminSideb
   const getRestaurantId = () => {
     if (typeof window === 'undefined') return '';
     const params = new URLSearchParams(window.location.search);
-    return params.get('rid') || localStorage.getItem('tablio_rid') || '';
+    return params.get('rid') || localStorage.getItem('temfy_rid') || '';
   };
 
   const getRole = () => {
     if (typeof window === 'undefined') return 'staff';
-    return localStorage.getItem('tablio_role') || 'staff';
+    return localStorage.getItem('temfy_role') || 'staff';
   };
 
   const restaurantId = getRestaurantId();
@@ -129,7 +129,7 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: AdminSideb
             onClick={() => {
               const rid = getRestaurantId();
               // Clear current session to force re-auth
-              localStorage.removeItem('tablio_token');
+              localStorage.removeItem('temfy_token');
               router.push(`/admin/login${rid ? `?rid=${rid}` : ''}`);
             }}
             className={`w-full flex items-center px-4 py-3 rounded-xl font-bold transition-all ${
@@ -154,7 +154,7 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed }: AdminSideb
           <button
             onClick={() => {
               const rid = getRestaurantId();
-              localStorage.removeItem('tablio_token');
+              localStorage.removeItem('temfy_token');
               router.push(`/admin/login${rid ? `?rid=${rid}` : ''}`);
             }}
             className={`w-full flex items-center px-4 py-3 rounded-xl font-bold text-red-400 hover:bg-red-400/10 transition-all ${isCollapsed ? 'lg:justify-center' : 'gap-3'}`}

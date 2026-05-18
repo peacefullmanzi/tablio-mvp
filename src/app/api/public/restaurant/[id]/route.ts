@@ -15,7 +15,7 @@ export async function GET(
 
     const data = doc.data();
     return NextResponse.json({ 
-      name: data?.name || 'Tablio Restaurant',
+      name: data?.name || 'Temfy Restaurant',
       id: id
     });
   } catch (error) {

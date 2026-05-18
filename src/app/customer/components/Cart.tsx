@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStore } from '@/lib/store';
-import { ShoppingBag, X, Minus, Plus } from 'lucide-react';
+import { ShoppingBag, X, Minus, Plus, Lock } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 
 interface CartProps {
@@ -21,13 +21,12 @@ export default function Cart({ restaurantIdOverride }: CartProps) {
 
   const handlePlaceOrder = async () => {
     if (!tableNumber.trim()) {
-      alert('Please enter a table number');
+      alert('Table number not set. Please scan the QR code again.');
       return;
     }
 
     if (items.length === 0) return;
 
-    // Use the override (from URL) or fallback to the environment variable
     const restaurantId = restaurantIdOverride || process.env.NEXT_PUBLIC_RESTAURANT_ID;
     if (!restaurantId) {
       console.error('[Cart] No restaurantId found.');
@@ -37,8 +36,6 @@ export default function Cart({ restaurantIdOverride }: CartProps) {
 
     setIsSubmitting(true);
     try {
-      // Send order to server — server fetches real prices from DB
-      // Client only sends item IDs + quantities (prices are NOT trusted)
       const response = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -57,13 +54,10 @@ export default function Cart({ restaurantIdOverride }: CartProps) {
 
       console.log("[Cart] Order placed successfully. Doc ID:", data.orderId);
       
-      alert('Order placed successfully!');
       localStorage.setItem('last_order_id', data.orderId);
       clearCart();
-      setTableNumber('');
       setIsOpen(false);
       
-      // Redirect to tracking page
       router.push(`/customer/track/${data.orderId}`);
     } catch (error) {
       console.error("[Cart] Error placing order: ", error);
@@ -78,7 +72,6 @@ export default function Cart({ restaurantIdOverride }: CartProps) {
 
   return (
     <>
-      {/* Dynamic Island Cart (Always Visible when items exist) */}
       {!isOpen && (
         <div className="fixed bottom-6 left-0 right-0 px-4 z-50 flex justify-center pointer-events-none">
           <button
@@ -96,7 +89,6 @@ export default function Cart({ restaurantIdOverride }: CartProps) {
         </div>
       )}
 
-      {/* Cart Drawer */}
       {isOpen && (
         <div className="fixed inset-0 z-50 flex justify-end">
           <div className="absolute inset-0 bg-background/90 backdrop-blur-md" onClick={() => setIsOpen(false)} />
@@ -139,24 +131,23 @@ export default function Cart({ restaurantIdOverride }: CartProps) {
               </div>
               
               <div className="space-y-6">
-                <div>
-                  <label htmlFor="table" className="block text-xs font-black text-secondary-text uppercase tracking-widest mb-2 ml-1">
-                    Enter Table Number
-                  </label>
-                  <input
-                    id="table"
-                    type="text"
-                    inputMode="numeric"
-                    value={tableNumber}
-                    onChange={(e) => setTableNumber(e.target.value)}
-                    placeholder="e.g. 5"
-                    className="w-full bg-background border-2 border-white/10 rounded-2xl px-6 py-5 text-2xl font-black text-primary-text placeholder-white/20 focus:border-accent transition-all text-center"
-                  />
+                <div className="bg-white/5 border border-white/10 rounded-2xl px-6 py-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Lock size={18} className="text-accent" />
+                    <span className="text-sm text-secondary-text font-bold uppercase tracking-wider">Table</span>
+                  </div>
+                  <span className="text-2xl font-black text-primary-text">{tableNumber || 'Not Set'}</span>
                 </div>
+                
+                {!tableNumber && (
+                  <p className="text-red-400 text-xs text-center font-bold">
+                    Table number not detected. Please scan the QR code again.
+                  </p>
+                )}
                 
                 <button
                   onClick={handlePlaceOrder}
-                  disabled={isSubmitting || items.length === 0}
+                  disabled={isSubmitting || items.length === 0 || !tableNumber}
                   className="w-full bg-accent text-background font-black text-xl py-6 rounded-2xl transition-all shadow-xl active:scale-95 disabled:opacity-30 uppercase tracking-tight"
                 >
                   {isSubmitting ? 'Sending...' : 'CONFIRM & SEND ORDER'}

@@ -28,7 +28,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const getRestaurantId = () => {
     if (typeof window === 'undefined') return '';
     const params = new URLSearchParams(window.location.search);
-    return params.get('rid') || localStorage.getItem('tablio_rid') || '';
+    return params.get('rid') || localStorage.getItem('temfy_rid') || '';
   };
 
   const restaurantId = getRestaurantId();
@@ -79,7 +79,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       if (response.ok) {
         setSuccess(true);
         if (pinType === 'manager') {
-          localStorage.setItem(`tablio_admin_auth_${restaurantId}`, newPin);
+          localStorage.setItem(`temfy_admin_auth_${restaurantId}`, newPin);
         }
         setTimeout(() => {
           onClose();
@@ -145,7 +145,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       ctx.textAlign = 'right';
       ctx.font = 'italic 700 40px Inter, sans-serif';
       ctx.fillStyle = '#10B981';
-      ctx.fillText('tablio', width - 80, height - 80);
+      ctx.fillText('temfy', width - 80, height - 80);
       
       ctx.fillStyle = '#999999';
       ctx.font = '500 30px Inter, sans-serif';
@@ -296,7 +296,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         try {
                           // Test Native Notification
                           if (Notification.permission === 'granted') {
-                            new Notification('Tablio Test', { body: 'This is a test background alert!' });
+                            new Notification('Temfy Test', { body: 'This is a test background alert!' });
                           } else {
                             Notification.requestPermission();
                           }
@@ -391,7 +391,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
                     <div className="w-full flex flex-col items-end z-10">
                       <p className="text-[8px] font-bold text-black/30 uppercase tracking-tighter leading-none mb-1">Digital Menu by</p>
-                      <p className="text-lg font-black text-accent italic leading-none">tablio</p>
+                      <p className="text-lg font-black text-accent italic leading-none">temfy</p>
                     </div>
                   </div>
                 </div>

@@ -3,7 +3,7 @@
  * Automatically attaches the JWT token from localStorage.
  */
 export async function adminFetch(url: string, options: RequestInit = {}) {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('tablio_token') : null;
+  const token = typeof window !== 'undefined' ? localStorage.getItem('temfy_token') : null;
   
   const headers = new Headers(options.headers);
   if (token) {

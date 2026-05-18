@@ -61,7 +61,7 @@ export default function AdminChat({ orderId, tableNumber, isOpen, onClose, order
     try {
       const getRestaurantId = () => {
         const params = new URLSearchParams(window.location.search);
-        return params.get('rid') || localStorage.getItem('tablio_rid') || '';
+        return params.get('rid') || localStorage.getItem('temfy_rid') || '';
       };
       
       const restaurantId = getRestaurantId();

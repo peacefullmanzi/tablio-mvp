@@ -24,7 +24,7 @@ export default function OrderCard({ order, onMessageCountChange }: OrderCardProp
     const getRestaurantId = () => {
       if (typeof window === 'undefined') return '';
       const params = new URLSearchParams(window.location.search);
-      return params.get('rid') || localStorage.getItem('tablio_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID || '';
+      return params.get('rid') || localStorage.getItem('temfy_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID || '';
     };
 
     setIsUpdating(true);

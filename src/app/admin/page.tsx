@@ -12,6 +12,8 @@ import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { adminFetch } from '@/lib/api-client';
+import RequestsPanel from './components/RequestsPanel';
+import { useKitchenNotifications } from '@/lib/use-kitchen-notifications';
 
 function AdminContent() {
   const searchParams = useSearchParams();
@@ -37,6 +39,8 @@ function AdminContent() {
   const [page, setPage] = useState(1);
   const prevOrderCount = useRef<number | null>(null);
 
+  const { hasNewOrder } = useKitchenNotifications({ restaurantId });
+
   const handleMessageCountChange = useCallback((orderId: string, count: number) => {
     setMessageCounts(prev => {
       if (prev[orderId] === count) return prev;
@@ -54,12 +58,12 @@ function AdminContent() {
 
   // Sync restaurantId from URL or Storage
   useEffect(() => {
-    const rid = ridParam || localStorage.getItem('tablio_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID;
+    const rid = ridParam || localStorage.getItem('temfy_rid') || process.env.NEXT_PUBLIC_RESTAURANT_ID;
     if (rid && rid !== restaurantId) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setRestaurantId(rid);
-      if (rid !== localStorage.getItem('tablio_rid')) {
-        localStorage.setItem('tablio_rid', rid);
+      if (rid !== localStorage.getItem('temfy_rid')) {
+        localStorage.setItem('temfy_rid', rid);
       }
     }
   }, [ridParam]);
@@ -227,9 +231,17 @@ function AdminContent() {
                   <motion.h1 
                     initial={{ x: -10, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
-                    className="text-xl lg:text-2xl font-black text-primary-text tracking-tight truncate"
+                    className={`text-xl lg:text-2xl font-black tracking-tight truncate ${
+                      hasNewOrder ? 'text-accent animate-pulse' : 'text-primary-text'
+                    }`}
                   >
                     {restaurantName}
+                    {hasNewOrder && (
+                      <span className="ml-2 inline-flex items-center gap-1 text-sm font-bold">
+                        <span className="w-2 h-2 bg-accent rounded-full animate-ping" />
+                        NEW ORDER
+                      </span>
+                    )}
                   </motion.h1>
                   <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border shrink-0 ${
                     role === 'manager' 
@@ -326,6 +338,8 @@ function AdminContent() {
       {/* Scrollable Content Area */}
       <main className="flex-1 overflow-y-auto p-4 sm:p-6 pb-24">
         <div className="container mx-auto">
+          {restaurantId && <RequestsPanel restaurantId={restaurantId} />}
+          
           {isLoading || isFetchingHistory ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
               {[...Array(8)].map((_, i) => (
