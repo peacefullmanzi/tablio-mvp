@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useStore } from '@/lib/store';
-import { ShoppingBag, X, Minus, Plus, Lock } from 'lucide-react';
+import { ShoppingBag, X, Minus, Plus, Lock, Edit2 } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 
 interface CartProps {
@@ -13,6 +13,10 @@ interface CartProps {
 export default function Cart({ restaurantIdOverride }: CartProps) {
   const { items, getTotal, removeFromCart, addToCart, clearCart, tableNumber, setTableNumber } = useStore();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const tableParam = searchParams.get('table');
+  const isLocked = !!tableParam && /^\d+$/.test(tableParam);
+  
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -131,23 +135,40 @@ export default function Cart({ restaurantIdOverride }: CartProps) {
               </div>
               
               <div className="space-y-6">
-                <div className="bg-white/5 border border-white/10 rounded-2xl px-6 py-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Lock size={18} className="text-accent" />
-                    <span className="text-sm text-secondary-text font-bold uppercase tracking-wider">Table</span>
+                {isLocked ? (
+                  <div className="bg-white/5 border border-white/10 rounded-2xl px-6 py-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Lock size={18} className="text-accent" />
+                      <span className="text-sm text-secondary-text font-bold uppercase tracking-wider">Table (Locked)</span>
+                    </div>
+                    <span className="text-2xl font-black text-primary-text">{tableNumber}</span>
                   </div>
-                  <span className="text-2xl font-black text-primary-text">{tableNumber || 'Not Set'}</span>
-                </div>
+                ) : (
+                  <div className="space-y-2">
+                    <label htmlFor="table-input" className="block text-xs font-black text-secondary-text uppercase tracking-widest ml-1">
+                      Enter Table Number
+                    </label>
+                    <input
+                      id="table-input"
+                      type="text"
+                      inputMode="numeric"
+                      value={tableNumber}
+                      onChange={(e) => setTableNumber(e.target.value)}
+                      placeholder="e.g. 5"
+                      className="w-full bg-background border-2 border-white/10 rounded-2xl px-6 py-4 text-xl font-black text-primary-text placeholder-white/20 focus:border-accent transition-all text-center outline-none"
+                    />
+                  </div>
+                )}
                 
-                {!tableNumber && (
+                {!tableNumber.trim() && (
                   <p className="text-red-400 text-xs text-center font-bold">
-                    Table number not detected. Please scan the QR code again.
+                    Please enter your table number to proceed.
                   </p>
                 )}
                 
                 <button
                   onClick={handlePlaceOrder}
-                  disabled={isSubmitting || items.length === 0 || !tableNumber}
+                  disabled={isSubmitting || items.length === 0 || !tableNumber.trim()}
                   className="w-full bg-accent text-background font-black text-xl py-6 rounded-2xl transition-all shadow-xl active:scale-95 disabled:opacity-30 uppercase tracking-tight"
                 >
                   {isSubmitting ? 'Sending...' : 'CONFIRM & SEND ORDER'}
